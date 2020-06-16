@@ -1,20 +1,23 @@
 using System;
 using Microsoft.Extensions.Options;
 using Yadl;
+using Yadl.Channels;
 
 namespace Microsoft.Extensions.Logging
 {
     public class YadlLoggerProvider : ILoggerProvider
     {
         private readonly YadlProviderOptions _yadlLoggerOptions;
+        private readonly YadlPubSub _yadlPubSub;
 
-        public YadlLoggerProvider(IOptions<YadlProviderOptions> yadlLoggerOptions) : this(yadlLoggerOptions.Value)
+        public YadlLoggerProvider(YadlPubSub yadlPubSub, IOptions<YadlProviderOptions> yadlLoggerOptions) : this(yadlPubSub, yadlLoggerOptions.Value)
         {
         }
 
-        public YadlLoggerProvider(YadlProviderOptions yadlLoggerOptions = null)
+        public YadlLoggerProvider(YadlPubSub yadlPubSub, YadlProviderOptions yadlLoggerOptions = null)
         {
             _yadlLoggerOptions = yadlLoggerOptions;
+            _yadlPubSub = yadlPubSub;
 
             if (_yadlLoggerOptions == null)
             {
@@ -34,7 +37,7 @@ namespace Microsoft.Extensions.Logging
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new YadlLogger(_yadlLoggerOptions);
+            return new YadlLogger(_yadlLoggerOptions, _yadlPubSub);
         }
     }
 }
