@@ -3,9 +3,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.Logging
 {
-    public static class YadlLog
+    public static class YadlInformation
     {
-        private static EventId _eventId = new EventId(1, "Default");
+        private static EventId _eventId = new EventId(1, "Default Information");
 
         private static readonly Action<ILogger, string, Exception> _information = LoggerMessage.Define<string>(
             LogLevel.Information,
