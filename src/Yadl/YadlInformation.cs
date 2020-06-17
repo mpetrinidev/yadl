@@ -13,17 +13,17 @@ namespace Microsoft.Extensions.Logging
             "{Message}"
         );
 
-        public static void Information(this ILogger logger, string message) => _information(logger, message, null);
-        public static void Information(this ILogger logger, EventId eventId, string message)
+        public static void LogInformationHighPerf(this ILogger logger, string message) => _information(logger, message, null);
+        public static void LogInformationHighPerf(this ILogger logger, EventId eventId, string message)
         {
             _eventId = eventId;
             _information(logger, message, null);
         }
 
-        public static void Information(this ILogger logger, Exception exception, string message) =>
+        public static void LogInformationHighPerf(this ILogger logger, Exception exception, string message) =>
             _information(logger, message, exception);
 
-        public static void Information(this ILogger logger, EventId eventId, Exception exception, string message)
+        public static void LogInformationHighPerf(this ILogger logger, EventId eventId, Exception exception, string message)
         {
             _eventId = eventId;
             _information(logger, message, exception);
