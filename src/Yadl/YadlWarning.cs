@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.Logging;
 
-namespace Yadl
+namespace Microsoft.Extensions.Logging
 {
     public static class YadlWarning
     {
@@ -27,6 +27,6 @@ namespace Yadl
         {
             _eventId = eventId;
             _warning(logger, message, exception);
-        }
+        }    
     }
 }
