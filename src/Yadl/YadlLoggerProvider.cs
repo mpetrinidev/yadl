@@ -2,15 +2,16 @@ using System;
 using Microsoft.Extensions.Options;
 using Yadl;
 using Yadl.Abstractions;
-using Yadl.Channels;
+using Yadl.Common;
 
 namespace Microsoft.Extensions.Logging
 {
-    public class YadlLoggerProvider : ILoggerProvider
+    [ProviderAlias("Yadl")]
+    public class YadlLoggerProvider : ILoggerProvider, ISupportExternalScope
     {
         private readonly YadlLoggerOptions _options;
         private readonly IYadlProcessor _processor;
-
+        private IExternalScopeProvider _scopeProvider;
         public YadlLoggerProvider(IYadlProcessor processor, IOptions<YadlLoggerOptions> options) : this(processor, options.Value)
         {
         }
@@ -48,12 +49,17 @@ namespace Microsoft.Extensions.Logging
         
         public void Dispose()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new YadlLogger(_options, _processor);
+            return new YadlLogger(_options, _processor, _scopeProvider);
+        }
+
+        public void SetScopeProvider(IExternalScopeProvider scopeProvider)
+        {
+            _scopeProvider = scopeProvider;
         }
     }
 }
