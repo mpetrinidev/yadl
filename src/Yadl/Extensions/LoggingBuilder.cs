@@ -13,6 +13,11 @@ namespace Microsoft.Extensions.Logging
     {
         public static ILoggingBuilder AddYadl(this ILoggingBuilder builder)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+            
             builder.AddConfiguration();
             builder.Services.AddSingleton<IYadlProcessor, YadlProcessor>();
             builder.Services.AddSingleton<ILoggerProvider, YadlLoggerProvider>();
@@ -23,6 +28,11 @@ namespace Microsoft.Extensions.Logging
 
         public static ILoggingBuilder AddYadl(this ILoggingBuilder builder, Action<YadlLoggerOptions> options)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+            
             if (options == null)
             {
                 throw new ArgumentNullException(nameof(options));

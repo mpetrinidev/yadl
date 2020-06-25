@@ -55,6 +55,11 @@ namespace Yadl
         public string Datos { get; set; }
         
         /// <summary>
+        /// Campo TIPO_OBJ
+        /// </summary>
+        public string TipoObj { get; set; }
+        
+        /// <summary>
         /// Campo ID_OBJ
         /// </summary>
         public long? IdObj { get; set; }

@@ -2,7 +2,6 @@ using System;
 using Microsoft.Extensions.Options;
 using Yadl;
 using Yadl.Abstractions;
-using Yadl.Common;
 
 namespace Microsoft.Extensions.Logging
 {
@@ -49,12 +48,11 @@ namespace Microsoft.Extensions.Logging
         
         public void Dispose()
         {
-            throw new NotImplementedException();
         }
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new YadlLogger(_options, _processor, _scopeProvider);
+            return new YadlLogger(categoryName, _options, _processor, _scopeProvider);
         }
 
         public void SetScopeProvider(IExternalScopeProvider scopeProvider)
