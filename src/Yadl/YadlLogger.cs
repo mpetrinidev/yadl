@@ -1,10 +1,13 @@
 using System;
-using System.Collections;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Options;
 using Yadl;
 using Yadl.Abstractions;
 using Yadl.Common;
+using Yadl.Json;
 
 namespace Microsoft.Extensions.Logging
 {
@@ -49,69 +52,103 @@ namespace Microsoft.Extensions.Logging
                 Paquete = _options.ProjectPackage,
                 EndDt = DateTimeOffset.Now
             };
+            
+            CompleteMessage(message);
 
-            CompleteMessage(message, _options.GlobalFields);
             if (!_processor.ChannelWriter.TryWrite(message))
             {
                 return;
             }
         }
 
-        private void CompleteMessage(YadlMessage message, Dictionary<string, object> globalFields)
+        private void CompleteMessage(YadlMessage message)
         {
-            if (globalFields != null && globalFields.Count > 0)
+            ProcessFields(message, _options.GlobalFields, true);
+            _scopeProvider?.ForEachScope(
+                (scope, mes) => { ProcessFields(message, (IEnumerable<KeyValuePair<string,object>>) scope); }, message);
+        }
+
+        private static void ProcessFields(YadlMessage message, IEnumerable<KeyValuePair<string, object>> fields,
+            bool isGlobalFields = false)
+        {
+            if (fields == null) return;
+            
+            var fieldsAsList = fields.ToList();
+            for (var i = fieldsAsList.Count - 1; i >= 0; i--)
             {
-                foreach (var globalField in globalFields)
+                var foundedKey = false;
+                switch (fieldsAsList[i].Key.ToLower())
                 {
-                    switch (globalField.Key.ToLower())
-                    {
-                        case "ep_origen":
-                        case "eporigen":
-                        case "ip_origen":
-                        case "iporigen":
-                            message.IpOrigen = globalField.Value.ToString();
-                            continue;
-                        case "ep_destino":
-                        case "epdestino":
-                        case "ip_destino":
-                        case "ipdestino":
-                            message.IpDestino = globalField.Value.ToString();
-                            continue;
-                        case "datos":
-                            message.Datos = globalField.Value.ToString();
-                            continue;
-                        case "tipo_obj":
-                        case "tipoobj":
-                            message.TipoObj = globalField.Value.ToString();
-                            continue;
-                        case "id_obj":
-                        case "idobj":
-                            message.IdObj = GetIdObj(globalField.Value);
-                            continue;
-                        case "id_obj_hash":
-                        case "idobjhash":
-                            message.IdObjHash = globalField.Value.ToString();
-                            continue;
-                        case "cod_resp":
-                        case "codresp":
-                            message.CodRespuesta = globalField.Value.ToString();
-                            continue;
-                        case "sec_client":
-                        case "secclient":
-                            message.SecClient = globalField.Value.ToString();
-                            continue;
-                        case "sec_banco":
-                        case "secbanco":
-                        case "sec_bco":
-                        case "secbco":
-                            message.SecBanco = globalField.Value.ToString();
-                            continue;
-                        case "adddt":
-                            message.AddDt = GetAddDt(globalField.Value);
-                            continue;
-                    }
+                    case "ep_origen":
+                    case "eporigen":
+                    case "ip_origen":
+                    case "iporigen":
+                        message.IpOrigen = fieldsAsList[i].Value.ToString();
+                        foundedKey = true;
+                        
+                        break;
+                    case "ep_destino":
+                    case "epdestino":
+                    case "ip_destino":
+                    case "ipdestino":
+                        message.IpDestino = fieldsAsList[i].Value.ToString();
+                        foundedKey = true;
+                        
+                        break;
+                    case "datos":
+                        message.Datos = fieldsAsList[i].Value.ToString();
+                        foundedKey = true;
+                        
+                        break;
+                    case "tipo_obj":
+                    case "tipoobj":
+                        message.TipoObj = fieldsAsList[i].Value.ToString();
+                        foundedKey = true;
+                        
+                        break;
+                    case "id_obj":
+                    case "idobj":
+                        message.IdObj = GetIdObj(fieldsAsList[i].Value);
+                        foundedKey = true;
+                        
+                        break;
+                    case "id_obj_hash":
+                    case "idobjhash":
+                        message.IdObjHash = fieldsAsList[i].Value.ToString();
+                        foundedKey = true;
+                        
+                        break;
+                    case "cod_resp":
+                    case "codresp":
+                        message.CodRespuesta = fieldsAsList[i].Value.ToString();
+                        foundedKey = true;
+                        
+                        break;
+                    case "sec_client":
+                    case "secclient":
+                        message.SecClient = fieldsAsList[i].Value.ToString();
+                        foundedKey = true;
+                        
+                        break;
+                    case "sec_banco":
+                    case "secbanco":
+                    case "sec_bco":
+                    case "secbco":
+                        message.SecBanco = fieldsAsList[i].Value.ToString();
+                        foundedKey = true;
+                        
+                        break;
+                    case "adddt":
+                        message.AddDt = GetAddDt(fieldsAsList[i].Value);
+                        foundedKey = true;
+                        
+                        break;
                 }
+
+                if (foundedKey && !isGlobalFields) fieldsAsList.RemoveAt(i);
             }
+
+            message.AdditionalInfo = GetAdditionalInfo(message.AdditionalInfo, fieldsAsList);
 
             long GetIdObj(object value)
             {
@@ -124,17 +161,16 @@ namespace Microsoft.Extensions.Logging
                 DateTimeOffset.TryParse(value.ToString(), out var val);
                 return val;
             }
+        }
 
-            _scopeProvider?.ForEachScope((scope, mes) =>
-            {
-                var pairs = (Dictionary<string, object>) scope;
-                foreach (var pair in pairs)
-                {
-                    switch (pair.Key)
-                    {
-                    }
-                }
-            }, message);
+        private static string GetAdditionalInfo(string messageAdditionalInfo, List<KeyValuePair<string, object>> fieldsAsList)
+        {
+            var firstJson = string.IsNullOrEmpty(messageAdditionalInfo) ? "{}" : messageAdditionalInfo;
+            var secondJson = JsonSerializer.Serialize(fieldsAsList);
+            
+            var result = JsonExtensions.Merge(firstJson, secondJson);
+            
+            return firstJson;
         }
 
         public bool IsEnabled(LogLevel logLevel)

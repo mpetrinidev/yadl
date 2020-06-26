@@ -8,6 +8,7 @@
       <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.5" />
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.5" />
       <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="3.1.5" />
+      <PackageReference Include="System.Text.Json" Version="4.7.2" />
       <PackageReference Include="System.Threading.Channels" Version="4.7.1" />
     </ItemGroup>
 

@@ -88,5 +88,10 @@ namespace Yadl
         /// Campo DIFFT
         /// </summary>
         public int? Difft { get; set; }
+
+        /// <summary>
+        /// Campo INFO_ADICIONAL
+        /// </summary>
+        public string AdditionalInfo { get; set; }
     }
 }
