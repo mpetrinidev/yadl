@@ -52,7 +52,7 @@ namespace Microsoft.Extensions.Logging
                 Paquete = _options.ProjectPackage,
                 EndDt = DateTimeOffset.Now
             };
-            
+
             CompleteMessage(message);
 
             if (!_processor.ChannelWriter.TryWrite(message))
@@ -65,14 +65,17 @@ namespace Microsoft.Extensions.Logging
         {
             ProcessFields(message, _options.GlobalFields, true);
             _scopeProvider?.ForEachScope(
-                (scope, mes) => { ProcessFields(message, (IEnumerable<KeyValuePair<string,object>>) scope); }, message);
+                (scope, mes) =>
+                {
+                    ProcessFields(message, (IEnumerable<KeyValuePair<string, object>>) scope);
+                }, message);
         }
 
         private static void ProcessFields(YadlMessage message, IEnumerable<KeyValuePair<string, object>> fields,
             bool isGlobalFields = false)
         {
             if (fields == null) return;
-            
+
             var fieldsAsList = fields.ToList();
             for (var i = fieldsAsList.Count - 1; i >= 0; i--)
             {
@@ -85,7 +88,7 @@ namespace Microsoft.Extensions.Logging
                     case "iporigen":
                         message.IpOrigen = fieldsAsList[i].Value.ToString();
                         foundedKey = true;
-                        
+
                         break;
                     case "ep_destino":
                     case "epdestino":
@@ -93,42 +96,42 @@ namespace Microsoft.Extensions.Logging
                     case "ipdestino":
                         message.IpDestino = fieldsAsList[i].Value.ToString();
                         foundedKey = true;
-                        
+
                         break;
                     case "datos":
                         message.Datos = fieldsAsList[i].Value.ToString();
                         foundedKey = true;
-                        
+
                         break;
                     case "tipo_obj":
                     case "tipoobj":
                         message.TipoObj = fieldsAsList[i].Value.ToString();
                         foundedKey = true;
-                        
+
                         break;
                     case "id_obj":
                     case "idobj":
                         message.IdObj = GetIdObj(fieldsAsList[i].Value);
                         foundedKey = true;
-                        
+
                         break;
                     case "id_obj_hash":
                     case "idobjhash":
                         message.IdObjHash = fieldsAsList[i].Value.ToString();
                         foundedKey = true;
-                        
+
                         break;
                     case "cod_resp":
                     case "codresp":
                         message.CodRespuesta = fieldsAsList[i].Value.ToString();
                         foundedKey = true;
-                        
+
                         break;
                     case "sec_client":
                     case "secclient":
                         message.SecClient = fieldsAsList[i].Value.ToString();
                         foundedKey = true;
-                        
+
                         break;
                     case "sec_banco":
                     case "secbanco":
@@ -136,19 +139,19 @@ namespace Microsoft.Extensions.Logging
                     case "secbco":
                         message.SecBanco = fieldsAsList[i].Value.ToString();
                         foundedKey = true;
-                        
+
                         break;
                     case "adddt":
                         message.AddDt = GetAddDt(fieldsAsList[i].Value);
                         foundedKey = true;
-                        
+
                         break;
                 }
 
                 if (foundedKey && !isGlobalFields) fieldsAsList.RemoveAt(i);
             }
 
-            message.AdditionalInfo = GetAdditionalInfo(message.AdditionalInfo, fieldsAsList);
+            message.AdditionalInfo = GetAdditionalInfo(message.AdditionalInfo, fieldsAsList.ToDictionary(x => x.Key, x => x.Value));
 
             long GetIdObj(object value)
             {
@@ -163,14 +166,20 @@ namespace Microsoft.Extensions.Logging
             }
         }
 
-        private static string GetAdditionalInfo(string messageAdditionalInfo, List<KeyValuePair<string, object>> fieldsAsList)
+        private static string GetAdditionalInfo(string messageAdditionalInfo,
+            Dictionary<string, object> fieldsAsList)
         {
             var firstJson = string.IsNullOrEmpty(messageAdditionalInfo) ? "{}" : messageAdditionalInfo;
-            var secondJson = JsonSerializer.Serialize(fieldsAsList);
             
+            var serializerOptions = new JsonSerializerOptions();
+            var dicConverter = new DictionaryConverter();
+            serializerOptions.Converters.Add(dicConverter);
+            
+            var secondJson = JsonSerializer.Serialize(fieldsAsList, serializerOptions);
+
             var result = JsonExtensions.Merge(firstJson, secondJson);
-            
-            return firstJson;
+
+            return result;
         }
 
         public bool IsEnabled(LogLevel logLevel)

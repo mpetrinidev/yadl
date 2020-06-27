@@ -25,7 +25,8 @@ namespace Yadl.Tests
                     options.LogCnnStr = "Ok";
                     options.GlobalFields = new Dictionary<string, object>
                     {
-                        {"ServerName", "PROD-APP-01"}
+                        {"ServerName", "PROD-APP-01"},
+                        {"ep_origen", "192.168.0.1"}
                     };
                 });
             });
@@ -47,6 +48,7 @@ namespace Yadl.Tests
             var channel = _serviceProvider.GetService<IYadlProcessor>().ChannelReader;
             var msg = await channel.ReadAsync();
 
+            Assert.Equal("192.168.0.1", msg.IpOrigen);
             Assert.Equal("Esto es un mensaje con nivel information", msg.Descripcion);
         }
     }
