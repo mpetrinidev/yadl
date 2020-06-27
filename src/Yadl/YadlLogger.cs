@@ -1,6 +1,5 @@
 using System;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Options;
@@ -63,30 +62,29 @@ namespace Microsoft.Extensions.Logging
 
         private void CompleteMessage(YadlMessage message)
         {
-            ProcessFields(message, _options.GlobalFields, true);
+            ProcessFields(message, _options.GlobalFields.ToList(), true);
             _scopeProvider?.ForEachScope(
                 (scope, mes) =>
                 {
-                    ProcessFields(message, (IEnumerable<KeyValuePair<string, object>>) scope);
+                    ProcessFields(message, ((IEnumerable<KeyValuePair<string, object>>) scope).ToList());
                 }, message);
         }
 
-        private static void ProcessFields(YadlMessage message, IEnumerable<KeyValuePair<string, object>> fields,
+        private static void ProcessFields(YadlMessage message, List<KeyValuePair<string, object>> fields,
             bool isGlobalFields = false)
         {
             if (fields == null) return;
-
-            var fieldsAsList = fields.ToList();
-            for (var i = fieldsAsList.Count - 1; i >= 0; i--)
+            
+            for (var i = fields.Count - 1; i >= 0; i--)
             {
                 var foundedKey = false;
-                switch (fieldsAsList[i].Key.ToLower())
+                switch (fields[i].Key.ToLower())
                 {
                     case "ep_origen":
                     case "eporigen":
                     case "ip_origen":
                     case "iporigen":
-                        message.IpOrigen = fieldsAsList[i].Value.ToString();
+                        message.IpOrigen = fields[i].Value.ToString();
                         foundedKey = true;
 
                         break;
@@ -94,42 +92,42 @@ namespace Microsoft.Extensions.Logging
                     case "epdestino":
                     case "ip_destino":
                     case "ipdestino":
-                        message.IpDestino = fieldsAsList[i].Value.ToString();
+                        message.IpDestino = fields[i].Value.ToString();
                         foundedKey = true;
 
                         break;
                     case "datos":
-                        message.Datos = fieldsAsList[i].Value.ToString();
+                        message.Datos = fields[i].Value.ToString();
                         foundedKey = true;
 
                         break;
                     case "tipo_obj":
                     case "tipoobj":
-                        message.TipoObj = fieldsAsList[i].Value.ToString();
+                        message.TipoObj = fields[i].Value.ToString();
                         foundedKey = true;
 
                         break;
                     case "id_obj":
                     case "idobj":
-                        message.IdObj = GetIdObj(fieldsAsList[i].Value);
+                        message.IdObj = GetIdObj(fields[i].Value);
                         foundedKey = true;
 
                         break;
                     case "id_obj_hash":
                     case "idobjhash":
-                        message.IdObjHash = fieldsAsList[i].Value.ToString();
+                        message.IdObjHash = fields[i].Value.ToString();
                         foundedKey = true;
 
                         break;
                     case "cod_resp":
                     case "codresp":
-                        message.CodRespuesta = fieldsAsList[i].Value.ToString();
+                        message.CodRespuesta = fields[i].Value.ToString();
                         foundedKey = true;
 
                         break;
                     case "sec_client":
                     case "secclient":
-                        message.SecClient = fieldsAsList[i].Value.ToString();
+                        message.SecClient = fields[i].Value.ToString();
                         foundedKey = true;
 
                         break;
@@ -137,21 +135,21 @@ namespace Microsoft.Extensions.Logging
                     case "secbanco":
                     case "sec_bco":
                     case "secbco":
-                        message.SecBanco = fieldsAsList[i].Value.ToString();
+                        message.SecBanco = fields[i].Value.ToString();
                         foundedKey = true;
 
                         break;
                     case "adddt":
-                        message.AddDt = GetAddDt(fieldsAsList[i].Value);
+                        message.AddDt = GetAddDt(fields[i].Value);
                         foundedKey = true;
 
                         break;
                 }
 
-                if (foundedKey && !isGlobalFields) fieldsAsList.RemoveAt(i);
+                if (foundedKey && !isGlobalFields) fields.RemoveAt(i);
             }
 
-            message.AdditionalInfo = GetAdditionalInfo(message.AdditionalInfo, fieldsAsList.ToDictionary(x => x.Key, x => x.Value));
+            message.AdditionalInfo = GetAdditionalInfo(message.AdditionalInfo, fields.ToDictionary(x => x.Key, x => x.Value));
 
             long GetIdObj(object value)
             {

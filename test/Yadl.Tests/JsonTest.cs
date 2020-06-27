@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Text.Json;
+using Newtonsoft.Json;
 using Xunit;
 using Yadl.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Yadl.Tests
 {
@@ -26,8 +28,19 @@ namespace Yadl.Tests
                 }
             };
 
-            var dicString = JsonSerializer.Serialize(dic, jsonOptions);
-            Assert.NotEmpty(dicString);
+            var expected = @"{""Field1"":""Value1"",""Field2"":""Value2"",""NestedObject"":{""NestedField"":1}}";
+
+            {
+                var dicString = JsonSerializer.Serialize(dic, jsonOptions);
+                Assert.NotEmpty(dicString);
+                Assert.Equal(expected, dicString);
+            }
+
+            {
+                var dicString = JsonConvert.SerializeObject(dic);
+                Assert.NotEmpty(dicString);
+                Assert.Equal(expected, dicString);
+            }
         }
     }
 }
