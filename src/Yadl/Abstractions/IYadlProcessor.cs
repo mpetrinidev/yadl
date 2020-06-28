@@ -8,6 +8,6 @@ namespace Yadl.Abstractions
         Channel<YadlMessage> Channel { get; set; }
         ChannelReader<YadlMessage> ChannelReader { get; }
         ChannelWriter<YadlMessage> ChannelWriter { get; }
-        BlockingCollection<YadlMessage> Messages { get; }
+        ConcurrentBag<YadlMessage> Messages { get; }
     }
 }

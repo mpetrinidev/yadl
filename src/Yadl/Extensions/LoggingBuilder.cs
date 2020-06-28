@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Yadl;
 using Yadl.Abstractions;
 using Yadl.Channels;
+using Yadl.HostedServices;
 
 namespace Microsoft.Extensions.Logging
 {
@@ -23,6 +24,9 @@ namespace Microsoft.Extensions.Logging
             builder.Services.AddSingleton<ILoggerProvider, YadlLoggerProvider>();
             builder.Services.TryAddSingleton<IConfigureOptions<YadlLoggerOptions>, YadlLoggerOptionsSetup>();
             
+            builder.Services.AddHostedService<CoreLoggerHostedService>();
+            //builder.Services.AddHostedService<TimedHostedService>();
+
             return builder;
         }
 

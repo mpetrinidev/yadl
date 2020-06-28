@@ -11,15 +11,14 @@ namespace Yadl.Channels
         public Channel<YadlMessage> Channel { get; set; }
         public ChannelReader<YadlMessage> ChannelReader { get; }
         public ChannelWriter<YadlMessage> ChannelWriter { get; }
-        public BlockingCollection<YadlMessage> Messages { get; }
+        public ConcurrentBag<YadlMessage> Messages { get; }
 
         private readonly YadlLoggerOptions _options;
 
         public YadlProcessor(IOptions<YadlLoggerOptions> options) : this(options.Value)
         {
-            
         }
-        
+
         public YadlProcessor(YadlLoggerOptions options)
         {
             _options = options;
@@ -28,13 +27,17 @@ namespace Yadl.Channels
             {
                 throw new ArgumentNullException(nameof(options));
             }
-            
-            Channel = System.Threading.Channels.Channel.CreateBounded<YadlMessage>(new BoundedChannelOptions(_options.BatchSize)
-            {
-                FullMode = _options.ChannelFullMode
-            });
-            
-            Messages = new BlockingCollection<YadlMessage>(_options.BatchSize);
+
+            Channel = System.Threading.Channels.Channel.CreateBounded<YadlMessage>(
+                new BoundedChannelOptions(_options.BatchSize)
+                {
+                    FullMode = _options.ChannelFullMode,
+                    AllowSynchronousContinuations = true,
+                    SingleReader = true,
+                    SingleWriter = true
+                });
+
+            Messages = new ConcurrentBag<YadlMessage>();
 
             ChannelReader = Channel.Reader;
             ChannelWriter = Channel.Writer;
