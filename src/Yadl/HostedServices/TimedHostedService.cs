@@ -7,7 +7,7 @@ using Yadl.Abstractions;
 
 namespace Yadl.HostedServices
 {
-    public class TimedHostedService : IHostedService
+    public class TimedHostedService : BackgroundService
     {
         private readonly ILogger<TimedHostedService> _logger;
         private readonly IYadlProcessor _processor;
@@ -26,9 +26,9 @@ namespace Yadl.HostedServices
             _options = options;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!cancellationToken.IsCancellationRequested)
+            while (!stoppingToken.IsCancellationRequested)
             {
                 if (_options.BatchSize == _processor.Messages.Count)
                 {
@@ -39,12 +39,6 @@ namespace Yadl.HostedServices
 
                 await Task.Delay(_options.BatchPeriod);
             }
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Timed hosted service is stopping");
-            return Task.CompletedTask;
         }
     }
 }

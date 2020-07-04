@@ -25,7 +25,7 @@ namespace Microsoft.Extensions.Logging
             builder.Services.TryAddSingleton<IConfigureOptions<YadlLoggerOptions>, YadlLoggerOptionsSetup>();
             
             builder.Services.AddHostedService<CoreLoggerHostedService>();
-            //builder.Services.AddHostedService<TimedHostedService>();
+            builder.Services.AddHostedService<TimedHostedService>();
 
             return builder;
         }

@@ -9,7 +9,7 @@ using Yadl.Abstractions;
 
 namespace Yadl.HostedServices
 {
-    public class CoreLoggerHostedService : IHostedService
+    public class CoreLoggerHostedService : BackgroundService
     {
         private readonly ILogger<CoreLoggerHostedService> _logger;
         private readonly IYadlProcessor _processor;
@@ -28,9 +28,9 @@ namespace Yadl.HostedServices
             _options = options;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await foreach (var message in ReadAllAsync(cancellationToken))
+            await foreach (var message in ReadAllAsync(stoppingToken))
             {
                 if (_processor.Messages.Count == _options.BatchSize)
                 {
@@ -46,12 +46,6 @@ namespace Yadl.HostedServices
 
                 _processor.Messages.Add(message);
             }
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Core logger hosted service is stopping");
-            return Task.CompletedTask;
         }
 
         private async IAsyncEnumerable<YadlMessage> ReadAllAsync(
