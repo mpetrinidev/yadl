@@ -35,8 +35,9 @@ namespace Yadl.Tests
                         {
                             options.BatchPeriod = 30000;
                             options.BatchSize = 3;
-                            options.TableDestination = "LOGS";
-                            options.LogCnnStr = "Ok";
+                            options.ProjectPackage = "LOGS_TEST";
+                            options.TableDestination = "Logs";
+                            options.ConnectionString = "";
                             options.GlobalFields = new Dictionary<string, object>
                             {
                                 {"ServerName", "PROD-APP-01"},
@@ -49,13 +50,18 @@ namespace Yadl.Tests
             var host = webHost.Build();
             _serviceProvider = host.Services;
             _logger = _serviceProvider.GetService<ILogger<BasicTest>>();
-            
+
             host.Start();
         }
 
         [Fact]
         public void VerifyInsertElementsAfterBatchSize()
         {
+            using var scope = _logger.BeginScope(new Dictionary<string, object>
+            {
+                {"adddt", DateTimeOffset.Now}
+            });
+
             _logger.LogInformation("Test 1");
             _logger.LogInformation("Test 2");
             _logger.LogInformation("Test 3");
@@ -64,7 +70,7 @@ namespace Yadl.Tests
             var messages = _serviceProvider.GetService<IYadlProcessor>().Messages;
             Assert.NotNull(messages);
             Assert.NotEmpty(messages);
-            Assert.NotEqual("Test 4", messages.FirstOrDefault()?.Descripcion);
+            Assert.NotEqual("Test 4", messages.FirstOrDefault()?.DESCRIPCION);
         }
     }
 }

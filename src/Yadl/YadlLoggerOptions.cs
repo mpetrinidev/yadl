@@ -13,7 +13,7 @@ namespace Yadl
         public bool IncludeMessageTemplates { get; set; }
 
         public int BatchSize { get; set; }
-        public string LogCnnStr { get; set; }
+        public string ConnectionString { get; set; }
         public string TableDestination { get; set; }
         public string ProjectPackage { get; set; }
         public int BatchPeriod { get; set; }

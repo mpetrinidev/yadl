@@ -45,11 +45,11 @@ namespace Microsoft.Extensions.Logging
 
             var message = new YadlMessage
             {
-                Nivel = GetLogLevel(logLevel),
-                NivelDescripcion = GetLogDescription(logLevel),
-                Descripcion = formatter(state, exception),
-                Paquete = _options.ProjectPackage,
-                EndDt = DateTimeOffset.Now
+                NIVEL = GetLogLevel(logLevel),
+                NIVEL_DESCRIPCION = GetLogDescription(logLevel),
+                DESCRIPCION = formatter(state, exception),
+                PAQUETE = _options.ProjectPackage,
+                ENDDT = DateTimeOffset.Now
             };
 
             CompleteMessage(message);
@@ -84,7 +84,7 @@ namespace Microsoft.Extensions.Logging
                     case "eporigen":
                     case "ip_origen":
                     case "iporigen":
-                        message.IpOrigen = fields[i].Value.ToString();
+                        message.EP_ORIGEN = fields[i].Value.ToString();
                         foundedKey = true;
 
                         break;
@@ -92,42 +92,42 @@ namespace Microsoft.Extensions.Logging
                     case "epdestino":
                     case "ip_destino":
                     case "ipdestino":
-                        message.IpDestino = fields[i].Value.ToString();
+                        message.EP_DESTINO = fields[i].Value.ToString();
                         foundedKey = true;
 
                         break;
                     case "datos":
-                        message.Datos = fields[i].Value.ToString();
+                        message.DATOS = fields[i].Value.ToString();
                         foundedKey = true;
 
                         break;
                     case "tipo_obj":
                     case "tipoobj":
-                        message.TipoObj = fields[i].Value.ToString();
+                        message.TIPO_OBJ = fields[i].Value.ToString();
                         foundedKey = true;
 
                         break;
                     case "id_obj":
                     case "idobj":
-                        message.IdObj = GetIdObj(fields[i].Value);
+                        message.ID_OBJ = GetIdObj(fields[i].Value);
                         foundedKey = true;
 
                         break;
                     case "id_obj_hash":
                     case "idobjhash":
-                        message.IdObjHash = fields[i].Value.ToString();
+                        message.ID_OBJ_HASH = fields[i].Value.ToString();
                         foundedKey = true;
 
                         break;
                     case "cod_resp":
                     case "codresp":
-                        message.CodRespuesta = fields[i].Value.ToString();
+                        message.COD_RESP = fields[i].Value.ToString();
                         foundedKey = true;
 
                         break;
                     case "sec_client":
                     case "secclient":
-                        message.SecClient = fields[i].Value.ToString();
+                        message.SEC_CLIENT = fields[i].Value.ToString();
                         foundedKey = true;
 
                         break;
@@ -135,12 +135,12 @@ namespace Microsoft.Extensions.Logging
                     case "secbanco":
                     case "sec_bco":
                     case "secbco":
-                        message.SecBanco = fields[i].Value.ToString();
+                        message.SEC_BANCO = fields[i].Value.ToString();
                         foundedKey = true;
 
                         break;
                     case "adddt":
-                        message.AddDt = GetAddDt(fields[i].Value);
+                        message.ADDDT = GetAddDt(fields[i].Value);
                         foundedKey = true;
 
                         break;
@@ -149,7 +149,7 @@ namespace Microsoft.Extensions.Logging
                 if (foundedKey && !isGlobalFields) fields.RemoveAt(i);
             }
 
-            message.AdditionalInfo = GetAdditionalInfo(message.AdditionalInfo, fields.ToDictionary(x => x.Key, x => x.Value));
+            message.INFO_ADICIONAL = GetAdditionalInfo(message.INFO_ADICIONAL, fields.ToDictionary(x => x.Key, x => x.Value));
 
             long GetIdObj(object value)
             {

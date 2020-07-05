@@ -1,7 +1,11 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using FastMember;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -35,16 +39,38 @@ namespace Yadl.HostedServices
                 if (_processor.Messages.Count == _options.BatchSize)
                 {
                     //TODO Move elements to tmp list
-                    var tmpMsg = new YadlMessage[] { };
-                    _processor.Messages.CopyTo(tmpMsg, 0);
+                    var tmpMsg = _processor.Messages.ToList();
 
                     //TODO Clear _processor.Messages
                     _processor.Messages.Clear();
+                    _processor.Messages.Add(message);
 
                     //TODO Insert batch
+                    using var bcp = new SqlBulkCopy(_options.ConnectionString)
+                    {
+                        DestinationTableName = _options.TableDestination,
+                        BatchSize = _options.BatchSize
+                    };
+                    using var reader = ObjectReader.Create(tmpMsg,
+                        "ID",
+                        "ADDDT",
+                        "NIVEL",
+                        "NIVEL_DESCRIPCION",
+                        "PAQUETE",
+                        "EP_ORIGEN",
+                        "EP_DESTINO",
+                        "COD_RESP",
+                        "DESCRIPCION",
+                        "DATOS", "TIPO_OBJ", "ID_OBJ", "ID_OBJ_HASH", "SEC_CLIENT", "SEC_BANCO", "ENDDT", "DIFFT",
+                        "INFO_ADICIONAL"
+                    );
+                    
+                    await bcp.WriteToServerAsync(reader, stoppingToken);
                 }
-
-                _processor.Messages.Add(message);
+                else
+                {
+                    _processor.Messages.Add(message);
+                }
             }
         }
 

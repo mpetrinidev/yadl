@@ -35,9 +35,9 @@ namespace Microsoft.Extensions.Logging
                 throw new ArgumentOutOfRangeException(nameof(_options.BatchSize), $"{nameof(_options.BatchSize)} must be a positive number.");
             }
             
-            if (string.IsNullOrEmpty(_options.LogCnnStr))
+            if (string.IsNullOrEmpty(_options.ConnectionString))
             {
-                throw new ArgumentNullException(nameof(_options.LogCnnStr), $"{nameof(_options.LogCnnStr)} cannot be null or empty.");
+                throw new ArgumentNullException(nameof(_options.ConnectionString), $"{nameof(_options.ConnectionString)} cannot be null or empty.");
             }
             
             if (string.IsNullOrEmpty(_options.TableDestination))
