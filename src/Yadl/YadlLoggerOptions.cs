@@ -10,7 +10,6 @@ namespace Yadl
         public bool IncludeScopes { get; set; } = true;
         public Func<string, LogLevel, bool> Filter { get; set; }
         public Dictionary<string,object> GlobalFields { get; set; } = new Dictionary<string, object>();
-        public bool IncludeMessageTemplates { get; set; }
 
         public int BatchSize { get; set; }
         public string ConnectionString { get; set; }
@@ -19,7 +18,5 @@ namespace Yadl
         public int BatchPeriod { get; set; }
 
         public BoundedChannelFullMode ChannelFullMode { get; set; } = BoundedChannelFullMode.Wait;
-        
-        public double TimerInsert { get; set; }
     }
 }
