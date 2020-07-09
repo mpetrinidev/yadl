@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -21,11 +22,15 @@ namespace Yadl.Tests
         public BasicTest()
         {
             var webHost = new HostBuilder()
-                .ConfigureWebHost(host =>
+                .ConfigureWebHost(builder =>
                 {
-                    host.UseTestServer();
-                    host.UseEnvironment("Test");
-                    host.Configure(app => app.Run(async ctx => await ctx.Response.WriteAsync("Hello World!")));
+                    builder.UseTestServer();
+                    builder.UseEnvironment("Test");
+                    builder.Configure(app => app.Run(async ctx => await ctx.Response.WriteAsync("Hello World!")));
+                })
+                .ConfigureAppConfiguration(builder =>
+                {
+                    builder.AddUserSecrets<BasicTest>();
                 })
                 .ConfigureServices(c =>
                 {
@@ -37,7 +42,7 @@ namespace Yadl.Tests
                             options.BatchSize = 3;
                             options.ProjectPackage = "LOGS_TEST";
                             options.TableDestination = "Logs";
-                            options.ConnectionString = "";
+                            options.ConnectionString = builder.Services.BuildServiceProvider().GetService<IConfiguration>()["TestCnnString"];
                             options.GlobalFields = new Dictionary<string, object>
                             {
                                 {"ServerName", "PROD-APP-01"},
