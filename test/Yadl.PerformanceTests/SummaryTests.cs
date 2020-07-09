@@ -10,17 +10,5 @@ namespace Yadl.PerformanceTests
         {
             BenchmarkRunner.Run<JsonBenchmark>();
         }
-    
-        [Fact]
-        public void LogInformationBenchmark()
-        {
-            BenchmarkRunner.Run<LogInformationBenchmark>();
-        }
-        
-        [Fact]
-        public void LogWarningBenchmark()
-        {
-            BenchmarkRunner.Run<LogWarningBenchmark>();
-        }
     }
 }
