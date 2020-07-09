@@ -40,7 +40,6 @@ namespace Yadl.Tests
                         {
                             options.BatchPeriod = 30000;
                             options.BatchSize = 3;
-                            options.ProjectPackage = "LOGS_TEST";
                             options.TableDestination = "Logs";
                             options.ConnectionString = builder.Services.BuildServiceProvider().GetService<IConfiguration>()["TestCnnString"];
                             options.GlobalFields = new Dictionary<string, object>
@@ -75,7 +74,7 @@ namespace Yadl.Tests
             var messages = _serviceProvider.GetService<IYadlProcessor>().Messages;
             Assert.NotNull(messages);
             Assert.NotEmpty(messages);
-            Assert.NotEqual("Test 4", messages.FirstOrDefault()?.DESCRIPCION);
+            Assert.NotEqual("Test 4", messages.FirstOrDefault()?.Message);
         }
     }
 }

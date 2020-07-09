@@ -14,7 +14,6 @@ namespace Yadl
         public int BatchSize { get; set; }
         public string ConnectionString { get; set; }
         public string TableDestination { get; set; }
-        public string ProjectPackage { get; set; }
         public int BatchPeriod { get; set; }
 
         public BoundedChannelFullMode ChannelFullMode { get; set; } = BoundedChannelFullMode.Wait;

@@ -21,7 +21,6 @@ namespace Yadl.Tests
                 ["Logging:Yadl:BatchSize"] = "100",
                 ["Logging:Yadl:ConnectionString"] = "SQL_TEST_LOG",
                 ["Logging:Yadl:TableDestination"] = "Logs",
-                ["Logging:Yadl:ProjectPackage"] = "TEST_PROJECT",
                 ["Logging:Yadl:BatchPeriod"] = "30000",
                 ["Logging:Yadl:ChannelFullMode"] = "0"
             }
@@ -47,7 +46,6 @@ namespace Yadl.Tests
             Assert.Equal(100, options.Value.BatchSize);
             Assert.Equal("SQL_TEST_LOG", options.Value.ConnectionString);
             Assert.Equal("Logs", options.Value.TableDestination);
-            Assert.Equal("TEST_PROJECT", options.Value.ProjectPackage);
             Assert.Equal(30000, options.Value.BatchPeriod);
             Assert.Equal(BoundedChannelFullMode.Wait, options.Value.ChannelFullMode);
         }
@@ -81,7 +79,6 @@ namespace Yadl.Tests
             Assert.Equal("PROD-APP-01", options.Value.GlobalFields.FirstOrDefault().Value);
             Assert.Equal("SQL_TEST_LOG", options.Value.ConnectionString);
             Assert.Equal("Logs", options.Value.TableDestination);
-            Assert.Equal("TEST_PROJECT", options.Value.ProjectPackage);
             Assert.Equal(BoundedChannelFullMode.Wait, options.Value.ChannelFullMode);
         }
     }
