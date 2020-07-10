@@ -1,6 +1,6 @@
 using System;
 using System.Buffers;
-using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 
@@ -45,16 +45,7 @@ namespace Yadl.Json
 
         private static void MergeObjects(Utf8JsonWriter jsonWriter, JsonElement root1, JsonElement root2)
         {
-            Debug.Assert(root1.ValueKind == JsonValueKind.Object);
-            Debug.Assert(root2.ValueKind == JsonValueKind.Object);
-
             jsonWriter.WriteStartObject();
-
-            // Write all the properties of the first document.
-            // If a property exists in both documents, either:
-            // * Merge them, if the value kinds match (e.g. both are objects or arrays),
-            // * Completely override the value of the first with the one from the second, if the value kind mismatches (e.g. one is object, while the other is an array or string),
-            // * Or favor the value of the first (regardless of what it may be), if the second one is null (i.e. don't override the first).
             foreach (JsonProperty property in root1.EnumerateObject())
             {
                 string propertyName = property.Name;
@@ -88,13 +79,9 @@ namespace Yadl.Json
                 }
             }
 
-            // Write all the properties of the second document that are unique to it.
-            foreach (JsonProperty property in root2.EnumerateObject())
+            foreach (var property in root2.EnumerateObject().Where(property => !root1.TryGetProperty(property.Name, out _)))
             {
-                if (!root1.TryGetProperty(property.Name, out _))
-                {
-                    property.WriteTo(jsonWriter);
-                }
+                property.WriteTo(jsonWriter);
             }
 
             jsonWriter.WriteEndObject();
@@ -102,12 +89,8 @@ namespace Yadl.Json
 
         private static void MergeArrays(Utf8JsonWriter jsonWriter, JsonElement root1, JsonElement root2)
         {
-            Debug.Assert(root1.ValueKind == JsonValueKind.Array);
-            Debug.Assert(root2.ValueKind == JsonValueKind.Array);
-
             jsonWriter.WriteStartArray();
 
-            // Write all the elements from both JSON arrays
             foreach (JsonElement element in root1.EnumerateArray())
             {
                 element.WriteTo(jsonWriter);

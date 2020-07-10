@@ -15,6 +15,7 @@ namespace Microsoft.Extensions.Logging
         private readonly string _name;
         private readonly YadlLoggerOptions _options;
         private readonly IYadlProcessor _processor;
+        private readonly JsonSerializerOptions _jsonSerializerOptions;
 
         private readonly IExternalScopeProvider _scopeProvider;
 
@@ -31,6 +32,8 @@ namespace Microsoft.Extensions.Logging
             _options = options;
             _processor = processor;
             _scopeProvider = scopeProvider;
+            _jsonSerializerOptions = new JsonSerializerOptions();
+            _jsonSerializerOptions.Converters.Add(new IEnumerableKeyValuePairConverter());
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception,
@@ -55,13 +58,13 @@ namespace Microsoft.Extensions.Logging
 
             if (!_processor.ChannelWriter.TryWrite(message))
             {
-                return;
+                //TODO: What is going to happen here? 🐍
             }
         }
 
         private void CompleteMessage(YadlMessage message)
         {
-            ProcessFields(message, _options.GlobalFields.ToList(), true);
+            ProcessFields(message, _options.GlobalFields);
             _scopeProvider?.ForEachScope(
                 (scope, mes) =>
                 {
@@ -69,22 +72,13 @@ namespace Microsoft.Extensions.Logging
                 }, message);
         }
 
-        private static void ProcessFields(YadlMessage message, IEnumerable<KeyValuePair<string, object>> fields,
-            bool isGlobalFields = false)
+        private void ProcessFields(YadlMessage message, IEnumerable<KeyValuePair<string, object>> fields)
         {
             if (fields == null) return;
+            var actualJson = string.IsNullOrEmpty(message.ExtraFields) ? "{}" : message.ExtraFields;
 
-            var fieldsToDic = fields.ToDictionary(x => x.Key, x => x.Value);
-
-            var firstJson = string.IsNullOrEmpty(message.ExtraFields) ? "{}" : message.ExtraFields;
-
-            var serializerOptions = new JsonSerializerOptions();
-            var dicConverter = new DictionaryConverter();
-            serializerOptions.Converters.Add(dicConverter);
-
-            var secondJson = JsonSerializer.Serialize(fieldsToDic, serializerOptions);
-
-            message.ExtraFields = JsonExtensions.Merge(firstJson, secondJson);
+            var fieldsAsJson = JsonSerializer.Serialize(fields, _jsonSerializerOptions);
+            message.ExtraFields = JsonExtensions.Merge(actualJson, fieldsAsJson);
         }
 
         public bool IsEnabled(LogLevel logLevel)
@@ -109,12 +103,12 @@ namespace Microsoft.Extensions.Logging
                 ValueTuple<string, decimal> field => ConvertTuple(field),
                 ValueTuple<string, object> field => ConvertTuple(field),
                 _ => NullScope.Instance
-            };
+            } ?? NullScope.Instance;
 
             IDisposable ConvertTuple((string, object) field) => _scopeProvider?.Push(new[]
             {
                 new KeyValuePair<string, object>(field.Item1, field.Item2)
-            });
+            }) ?? NullScope.Instance;
         }
 
         private string GetLogDescription(LogLevel level)
@@ -128,8 +122,8 @@ namespace Microsoft.Extensions.Logging
                 LogLevel.Error => "Error",
                 LogLevel.Critical => "Critical",
                 LogLevel.None => "None",
-                _ => null
-            };
+                _ => string.Empty
+            } ?? string.Empty;
         }
     }
 }

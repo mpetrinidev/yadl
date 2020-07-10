@@ -8,12 +8,12 @@ namespace Yadl
     public class YadlLoggerOptions
     {
         public bool IncludeScopes { get; set; } = true;
-        public Func<string, LogLevel, bool> Filter { get; set; }
-        public Dictionary<string,object> GlobalFields { get; set; } = new Dictionary<string, object>();
+        public Func<string, LogLevel, bool>? Filter { get; set; }
+        public Dictionary<string, object> GlobalFields { get; set; } = new Dictionary<string, object>();
 
         public int BatchSize { get; set; }
-        public string ConnectionString { get; set; }
-        public string TableDestination { get; set; }
+        public string? ConnectionString { get; set; }
+        public string? TableDestination { get; set; }
         public int BatchPeriod { get; set; }
 
         public BoundedChannelFullMode ChannelFullMode { get; set; } = BoundedChannelFullMode.Wait;
