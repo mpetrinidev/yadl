@@ -17,7 +17,7 @@ namespace Microsoft.Extensions.Logging
         private readonly IYadlProcessor _processor;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
 
-        private readonly IExternalScopeProvider _scopeProvider;
+        private readonly IExternalScopeProvider? _scopeProvider;
 
         public YadlLogger(string name, IOptions<YadlLoggerOptions> options, IYadlProcessor processor,
             IExternalScopeProvider scopeProvider) : this(name, options.Value,
@@ -26,7 +26,7 @@ namespace Microsoft.Extensions.Logging
         }
 
         public YadlLogger(string name, YadlLoggerOptions options, IYadlProcessor processor,
-            IExternalScopeProvider scopeProvider)
+            IExternalScopeProvider? scopeProvider)
         {
             _name = name;
             _options = options;

@@ -10,7 +10,7 @@ namespace Microsoft.Extensions.Logging
     {
         private readonly YadlLoggerOptions _options;
         private readonly IYadlProcessor _processor;
-        private IExternalScopeProvider _scopeProvider;
+        private IExternalScopeProvider? _scopeProvider;
 
         public YadlLoggerProvider(IYadlProcessor processor, IOptions<YadlLoggerOptions> options) : this(processor,
             options.Value)
