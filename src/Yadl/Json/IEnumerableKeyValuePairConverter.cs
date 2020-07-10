@@ -21,6 +21,8 @@ namespace Yadl.Json
         public override void Write(Utf8JsonWriter writer, IEnumerable<KeyValuePair<string, object>> value,
             JsonSerializerOptions options)
         {
+            //TODO: Establish a depth to 2
+            
             writer.WriteStartObject();
 
             foreach (var kvp in value)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -16,12 +17,13 @@ namespace Yadl.Tests
 {
     public class BasicTest
     {
-        private readonly IServiceProvider _serviceProvider;
+        private IServiceProvider _serviceProvider;
         private ILogger<BasicTest> _logger;
+        private IHostBuilder _hostBuilder;
 
         public BasicTest()
         {
-            var webHost = new HostBuilder()
+            _hostBuilder = new HostBuilder()
                 .ConfigureWebHost(builder =>
                 {
                     builder.UseTestServer();
@@ -51,16 +53,21 @@ namespace Yadl.Tests
                     });
                 });
 
-            var host = webHost.Build();
-            _serviceProvider = host.Services;
-            _logger = _serviceProvider.GetService<ILogger<BasicTest>>();
-
-            host.Start();
+            // IHost host = webHost.Build();
+            // _serviceProvider = host.Services;
+            // _logger = _serviceProvider.GetService<ILogger<BasicTest>>();
+            //
+            // host.Start();
         }
 
         [Fact]
-        public void VerifyInsertElementsAfterBatchSize()
+        public async Task VerifyInsertElementsAfterBatchSize()
         {
+            var host = await _hostBuilder.StartAsync();
+            
+            _serviceProvider = host.Services;
+            _logger = _serviceProvider.GetService<ILogger<BasicTest>>();
+
             using var scope = _logger.BeginScope(new Dictionary<string, object>
             {
                 {"adddt", DateTimeOffset.Now}
