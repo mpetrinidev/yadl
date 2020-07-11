@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Moq;
@@ -21,7 +23,7 @@ namespace Yadl.Tests
             var options = new YadlLoggerOptions
             {
                 BatchPeriod = 30000,
-                BatchSize = 100,
+                BatchSize = 10000,
                 ChannelFullMode = 0,
                 ConnectionString = config["TestCnnString"],
                 TableDestination = "Logs"
@@ -32,7 +34,7 @@ namespace Yadl.Tests
 
             await hostedService.StartAsync(default);
 
-            for (int i = 1; i <= 1_000; i++)
+            for (int i = 1; i <= 100_000; i++)
             {
                 yadlProcessor.ChannelWriter.TryWrite(new YadlMessage
                 {
@@ -41,15 +43,12 @@ namespace Yadl.Tests
                     LevelDescription = "Debug",
                     TimeStamp = DateTimeOffset.Now
                 });
-
-                if (i % 100 == 0)
-                {
-                    await Task.Delay(250);
-                }
             }
+
+            Assert.False(yadlProcessor.Messages.Any());
             
+            await Task.Delay(10000);
             hostedService.Dispose();
-            Assert.Empty(yadlProcessor.Messages);
         }
     }
 }

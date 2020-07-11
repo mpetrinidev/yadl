@@ -33,7 +33,7 @@ namespace Yadl.Channels
                 {
                     FullMode = _options.ChannelFullMode,
                     AllowSynchronousContinuations = true,
-                    SingleReader = true,
+                    SingleReader = false,
                     SingleWriter = true
                 });
 

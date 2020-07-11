@@ -33,17 +33,21 @@ namespace Yadl.HostedServices
         {
             await foreach (var message in ReadAllAsync(stoppingToken))
             {
-                if (_processor.Messages.Count == _options.BatchSize)
+                _processor.Messages.Add(message);
+                if (_processor.Messages.Count != _options.BatchSize) continue;
+
+                var tmpMsg = _processor.Messages.ToList();
+                _processor.Messages.Clear();
+
+                try
                 {
-                    var tmpMsg = _processor.Messages.ToList();
-                    _processor.Messages.Clear();
-                    
                     using var bcp = new SqlBulkCopy(_options.ConnectionString)
                     {
                         DestinationTableName = _options.TableDestination,
                         BatchSize = _options.BatchSize
                     };
-                    await using var reader = ObjectReader.Create(tmpMsg, "Message",
+                    await using var reader = ObjectReader.Create(tmpMsg, "Id", 
+                        "Message",
                         "Level",
                         "LevelDescription",
                         "TimeStamp",
@@ -51,8 +55,10 @@ namespace Yadl.HostedServices
 
                     await bcp.WriteToServerAsync(reader, stoppingToken);
                 }
-
-                _processor.Messages.Add(message);
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
             }
         }
 
