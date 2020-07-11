@@ -28,11 +28,9 @@ namespace Yadl.Channels
                 throw new ArgumentNullException(nameof(options));
             }
 
-            Channel = System.Threading.Channels.Channel.CreateBounded<YadlMessage>(
-                new BoundedChannelOptions(_options.BatchSize)
+            Channel = System.Threading.Channels.Channel.CreateUnbounded<YadlMessage>(
+                new UnboundedChannelOptions
                 {
-                    FullMode = _options.ChannelFullMode,
-                    AllowSynchronousContinuations = true,
                     SingleReader = false,
                     SingleWriter = true
                 });

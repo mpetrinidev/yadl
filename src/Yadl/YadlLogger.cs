@@ -56,10 +56,8 @@ namespace Microsoft.Extensions.Logging
 
             CompleteMessage(message);
 
-            if (!_processor.ChannelWriter.TryWrite(message))
-            {
-                //TODO: What is going to happen here? 🐍
-            }
+            //Assume always gonna be true because unbounded channel
+            _ = _processor.ChannelWriter.TryWrite(message);
         }
 
         private void CompleteMessage(YadlMessage message)

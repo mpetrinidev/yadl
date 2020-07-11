@@ -79,9 +79,12 @@ namespace Yadl.Tests
             _logger.LogInformation("Test 4");
 
             var messages = _serviceProvider.GetService<IYadlProcessor>().Messages;
+
+            await Task.Delay(5000);
+            
             Assert.NotNull(messages);
             Assert.NotEmpty(messages);
-            Assert.NotEqual("Test 4", messages.FirstOrDefault()?.Message);
+            Assert.Equal("Test 4", messages.FirstOrDefault()?.Message);
         }
     }
 }

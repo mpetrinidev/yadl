@@ -10,5 +10,11 @@ namespace Yadl.PerformanceTests
         {
             BenchmarkRunner.Run<JsonBenchmark>();
         }
+        
+        [Fact]
+        public void DataReaderBenchmark()
+        {
+            BenchmarkRunner.Run<DataReaderBenchmark>();
+        }
     }
 }
