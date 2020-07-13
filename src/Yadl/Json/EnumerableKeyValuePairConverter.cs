@@ -5,20 +5,20 @@ using System.Text.Json.Serialization;
 
 namespace Yadl.Json
 {
-    public class IEnumerableKeyValuePairConverter : JsonConverter<IEnumerable<KeyValuePair<string, object>>>
+    public class EnumerableKeyValuePairConverter : JsonConverter<Dictionary<string, object>>
     {
         public override bool CanConvert(Type typeToConvert)
         {
             return typeToConvert == typeof(Dictionary<string, object>);
         }
 
-        public override IEnumerable<KeyValuePair<string, object>> Read(ref Utf8JsonReader reader, Type typeToConvert,
+        public override Dictionary<string, object> Read(ref Utf8JsonReader reader, Type typeToConvert,
             JsonSerializerOptions options)
         {
             throw new NotImplementedException();
         }
 
-        public override void Write(Utf8JsonWriter writer, IEnumerable<KeyValuePair<string, object>> value,
+        public override void Write(Utf8JsonWriter writer, Dictionary<string, object> value,
             JsonSerializerOptions options)
         {
             //TODO: Establish a depth to 2
@@ -29,9 +29,9 @@ namespace Yadl.Json
             {
                 writer.WritePropertyName(kvp.Key);
 
-                if (kvp.Value is IEnumerable<KeyValuePair<string,object>>)
+                if (kvp.Value is Dictionary<string, object>)
                 {
-                    Write(writer, (IEnumerable<KeyValuePair<string,object>>) kvp.Value, options);
+                    Write(writer, (Dictionary<string, object>) kvp.Value, options);
                 }
 
                 if (kvp.Value is string)

@@ -1,11 +1,9 @@
 using System;
 using System.Text.Json;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.Options;
 using Yadl;
 using Yadl.Abstractions;
-using Yadl.Common;
 using Yadl.Json;
 
 namespace Microsoft.Extensions.Logging
@@ -17,23 +15,21 @@ namespace Microsoft.Extensions.Logging
         private readonly IYadlProcessor _processor;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
 
-        private readonly IExternalScopeProvider? _scopeProvider;
+        internal IExternalScopeProvider? ExternalScopeProvider { get; set; }
 
-        public YadlLogger(string name, IOptions<YadlLoggerOptions> options, IYadlProcessor processor,
-            IExternalScopeProvider scopeProvider) : this(name, options.Value,
-            processor, scopeProvider)
+        public YadlLogger(string name, IOptions<YadlLoggerOptions> options, IYadlProcessor processor) : this(name,
+            options.Value,
+            processor)
         {
         }
 
-        public YadlLogger(string name, YadlLoggerOptions options, IYadlProcessor processor,
-            IExternalScopeProvider? scopeProvider)
+        public YadlLogger(string name, YadlLoggerOptions options, IYadlProcessor processor)
         {
             _name = name;
             _options = options;
             _processor = processor;
-            _scopeProvider = scopeProvider;
             _jsonSerializerOptions = new JsonSerializerOptions();
-            _jsonSerializerOptions.Converters.Add(new IEnumerableKeyValuePairConverter());
+            _jsonSerializerOptions.Converters.Add(new EnumerableKeyValuePairConverter());
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception,
@@ -63,11 +59,15 @@ namespace Microsoft.Extensions.Logging
         private void CompleteMessage(YadlMessage message)
         {
             ProcessFields(message, _options.GlobalFields);
-            _scopeProvider?.ForEachScope(
-                (scope, mes) =>
-                {
-                    ProcessFields(message, ((IEnumerable<KeyValuePair<string, object>>) scope).ToList());
-                }, message);
+            // ExternalScopeProvider?.ForEachScope(
+            //     (scope, mes) =>
+            //     {
+            //         if (scope is IEnumerable<KeyValuePair<string, object>> pairs)
+            //         {
+            //             ProcessFields(message, pairs);
+            //         }
+            //     },
+            //     message);
         }
 
         private void ProcessFields(YadlMessage message, IEnumerable<KeyValuePair<string, object>> fields)
@@ -75,7 +75,7 @@ namespace Microsoft.Extensions.Logging
             if (fields == null) return;
             var actualJson = string.IsNullOrEmpty(message.ExtraFields) ? "{}" : message.ExtraFields;
 
-            var fieldsAsJson = JsonSerializer.Serialize(fields, _jsonSerializerOptions);
+            var fieldsAsJson = JsonSerializer.Serialize((Dictionary<string, object>) fields, _jsonSerializerOptions);
             message.ExtraFields = JsonExtensions.Merge(actualJson, fieldsAsJson);
         }
 
@@ -88,7 +88,7 @@ namespace Microsoft.Extensions.Logging
         {
             return state switch
             {
-                IEnumerable<KeyValuePair<string, object>> fields => _scopeProvider?.Push(fields),
+                IEnumerable<KeyValuePair<string, object>> fields => ExternalScopeProvider?.Push(fields),
                 ValueTuple<string, string> field => ConvertTuple(field),
                 ValueTuple<string, short> field => ConvertTuple(field),
                 ValueTuple<string, ushort> field => ConvertTuple(field),
@@ -103,7 +103,7 @@ namespace Microsoft.Extensions.Logging
                 _ => NullScope.Instance
             } ?? NullScope.Instance;
 
-            IDisposable ConvertTuple((string, object) field) => _scopeProvider?.Push(new[]
+            IDisposable ConvertTuple((string, object) field) => ExternalScopeProvider?.Push(new[]
             {
                 new KeyValuePair<string, object>(field.Item1, field.Item2)
             }) ?? NullScope.Instance;

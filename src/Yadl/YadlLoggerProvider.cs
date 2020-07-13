@@ -57,10 +57,13 @@ namespace Microsoft.Extensions.Logging
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new YadlLogger(categoryName, _options, _processor, _scopeProvider);
+            return new YadlLogger(categoryName, _options, _processor)
+            {
+                ExternalScopeProvider = _scopeProvider
+            };
         }
 
-        public void SetScopeProvider(IExternalScopeProvider scopeProvider)
+        void ISupportExternalScope.SetScopeProvider(IExternalScopeProvider scopeProvider)
         {
             _scopeProvider = scopeProvider;
         }

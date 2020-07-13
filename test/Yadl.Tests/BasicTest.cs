@@ -1,90 +1,119 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Xunit;
-using Yadl.Abstractions;
 
 namespace Yadl.Tests
 {
-    public class BasicTest
+    public class BasicTest : IDisposable
     {
-        private IServiceProvider _serviceProvider;
-        private ILogger<BasicTest> _logger;
-        private IHostBuilder _hostBuilder;
+        private MemoryConfigurationSource _memoryConfigurationSource = new MemoryConfigurationSource
+        {
+            InitialData = new Dictionary<string, string>
+            {
+                ["Logging:IncludeScopes"] = "true",
+                ["Logging:Yadl:IncludeScopes"] = "true",
+                ["Logging:Yadl:GlobalFields:ServerName"] = "PROD-APP-01",
+                ["Logging:Yadl:BatchSize"] = "100",
+                ["Logging:Yadl:ConnectionString"] = "SQL_TEST_LOG",
+                ["Logging:Yadl:TableDestination"] = "Logs",
+                ["Logging:Yadl:BatchPeriod"] = "30000",
+                ["Logging:Yadl:ChannelFullMode"] = "0"
+            }
+        };
+
+        private readonly HttpClient _httpClient;
+        private readonly IHost _host;
 
         public BasicTest()
         {
-            _hostBuilder = new HostBuilder()
+            var configuration = new ConfigurationBuilder().Add(_memoryConfigurationSource).Build();
+
+            var hostBuilder = new HostBuilder()
+                .ConfigureAppConfiguration(builder => { builder.AddUserSecrets<BasicTest>(); })
+                .ConfigureServices(c =>
+                {
+                    c.AddRouting();
+                    c.AddLogging(builder =>
+                    {
+                        builder.AddConfiguration(configuration.GetSection("Logging"));
+                        builder.AddYadl(options =>
+                        {
+                            options.ConnectionString =
+                                builder.Services.BuildServiceProvider().GetService<IConfiguration>()["TestCnnString"];
+                        });
+                        // builder.AddYadl(options =>
+                        // {
+                        //     options.IncludeScopes = true;
+                        //     options.BatchPeriod = 30000;
+                        //     options.BatchSize = 100;
+                        //     options.TableDestination = "Logs";
+                        //     options.ConnectionString =
+                        //         builder.Services.BuildServiceProvider().GetService<IConfiguration>()["TestCnnString"];
+                        //     options.GlobalFields = new Dictionary<string, object>
+                        //     {
+                        //         {"ServerName", "PROD-APP-01"},
+                        //         {"Ip", "192.168.0.1"}
+                        //     };
+                        // });
+                    });
+                })
                 .ConfigureWebHost(builder =>
                 {
                     builder.UseTestServer();
-                    builder.UseEnvironment("Test");
-                    builder.Configure(app => app.Run(async ctx => await ctx.Response.WriteAsync("Hello World!")));
-                })
-                .ConfigureAppConfiguration(builder =>
-                {
-                    builder.AddUserSecrets<BasicTest>();
-                })
-                .ConfigureServices(c =>
-                {
-                    c.AddLogging(builder =>
+                    builder.Configure(app =>
                     {
-                        builder.AddYadl(options =>
+                        app.UseRouting();
+                        app.UseEndpoints(e =>
                         {
-                            options.BatchPeriod = 30000;
-                            options.BatchSize = 3;
-                            options.TableDestination = "Logs";
-                            options.ConnectionString = builder.Services.BuildServiceProvider().GetService<IConfiguration>()["TestCnnString"];
-                            options.GlobalFields = new Dictionary<string, object>
+                            e.MapGet("/test", async context =>
                             {
-                                {"ServerName", "PROD-APP-01"},
-                                {"ep_origen", "192.168.0.1"}
-                            };
+                                var loggerFactory = context.RequestServices.GetService<ILoggerFactory>();
+                                var logger = loggerFactory.CreateLogger<BasicTest>();
+                                
+                                using (logger.BeginScope(new Dictionary<string, object> {{"Test", "Test"}}))
+                                {
+                                    for (var i = 1; i <= 1_000; i++)
+                                    {
+                                        logger.LogCritical($"Msg_{i}");
+                                    }
+                                }
+
+                                await Task.Delay(1500);
+
+                                context.Response.StatusCode = StatusCodes.Status200OK;
+                                await context.Response.WriteAsync("");
+                            });
                         });
                     });
                 });
 
-            // IHost host = webHost.Build();
-            // _serviceProvider = host.Services;
-            // _logger = _serviceProvider.GetService<ILogger<BasicTest>>();
-            //
-            // host.Start();
+            _host = hostBuilder.Start();
+            _httpClient = _host.GetTestClient();
         }
 
         [Fact]
         public async Task VerifyInsertElementsAfterBatchSize()
         {
-            var host = await _hostBuilder.StartAsync();
-            
-            _serviceProvider = host.Services;
-            _logger = _serviceProvider.GetService<ILogger<BasicTest>>();
+            var response = await _httpClient.GetAsync("/test");
+            Assert.Equal((HttpStatusCode) 200, response.StatusCode);
+        }
 
-            using var scope = _logger.BeginScope(new Dictionary<string, object>
-            {
-                {"adddt", DateTimeOffset.Now}
-            });
-
-            _logger.LogInformation("Test 1");
-            _logger.LogInformation("Test 2");
-            _logger.LogInformation("Test 3");
-            _logger.LogInformation("Test 4");
-
-            var messages = _serviceProvider.GetService<IYadlProcessor>().Messages;
-
-            await Task.Delay(5000);
-            
-            Assert.NotNull(messages);
-            Assert.NotEmpty(messages);
-            Assert.Equal("Test 4", messages.FirstOrDefault()?.Message);
+        public void Dispose()
+        {
+            _host?.Dispose();
+            _httpClient?.Dispose();
         }
     }
 }

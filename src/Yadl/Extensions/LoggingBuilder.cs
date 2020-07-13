@@ -18,12 +18,14 @@ namespace Microsoft.Extensions.Logging
             {
                 throw new ArgumentNullException(nameof(builder));
             }
+
+            builder.ClearProviders();
             
             builder.AddConfiguration();
             builder.Services.AddSingleton<IYadlProcessor, YadlProcessor>();
             builder.Services.AddSingleton<ILoggerProvider, YadlLoggerProvider>();
             builder.Services.TryAddSingleton<IConfigureOptions<YadlLoggerOptions>, YadlLoggerOptionsSetup>();
-            
+
             builder.Services.AddHostedService<CoreLoggerHostedService>();
             builder.Services.AddHostedService<TimedHostedService>();
 

@@ -17,7 +17,7 @@ namespace Yadl.PerformanceTests
         public void Setup()
         {
             _jsonOptions = new JsonSerializerOptions();
-            _jsonOptions.Converters.Add(new IEnumerableKeyValuePairConverter());
+            _jsonOptions.Converters.Add(new EnumerableKeyValuePairConverter());
 
             _dic = new Dictionary<string, object>
             {

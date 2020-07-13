@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.Logging;
 
-namespace Yadl.Common
+namespace Microsoft.Extensions.Logging
 {
     public class NullExternalScopeProvider : IExternalScopeProvider
     {

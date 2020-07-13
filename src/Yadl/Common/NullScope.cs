@@ -1,6 +1,6 @@
 using System;
 
-namespace Yadl.Common
+namespace Microsoft.Extensions.Logging
 {
     public class NullScope : IDisposable
     {
