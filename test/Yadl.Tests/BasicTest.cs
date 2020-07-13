@@ -18,28 +18,11 @@ namespace Yadl.Tests
 {
     public class BasicTest : IDisposable
     {
-        private MemoryConfigurationSource _memoryConfigurationSource = new MemoryConfigurationSource
-        {
-            InitialData = new Dictionary<string, string>
-            {
-                ["Logging:IncludeScopes"] = "true",
-                ["Logging:Yadl:IncludeScopes"] = "true",
-                ["Logging:Yadl:GlobalFields:ServerName"] = "PROD-APP-01",
-                ["Logging:Yadl:BatchSize"] = "100",
-                ["Logging:Yadl:ConnectionString"] = "SQL_TEST_LOG",
-                ["Logging:Yadl:TableDestination"] = "Logs",
-                ["Logging:Yadl:BatchPeriod"] = "30000",
-                ["Logging:Yadl:ChannelFullMode"] = "0"
-            }
-        };
-
         private readonly HttpClient _httpClient;
         private readonly IHost _host;
 
         public BasicTest()
         {
-            var configuration = new ConfigurationBuilder().Add(_memoryConfigurationSource).Build();
-
             var hostBuilder = new HostBuilder()
                 .ConfigureAppConfiguration(builder => { builder.AddUserSecrets<BasicTest>(); })
                 .ConfigureServices(c =>
@@ -47,26 +30,20 @@ namespace Yadl.Tests
                     c.AddRouting();
                     c.AddLogging(builder =>
                     {
-                        builder.AddConfiguration(configuration.GetSection("Logging"));
                         builder.AddYadl(options =>
                         {
+                            options.IncludeScopes = true;
+                            options.BatchPeriod = 30000;
+                            options.BatchSize = 100;
+                            options.TableDestination = "Logs";
                             options.ConnectionString =
                                 builder.Services.BuildServiceProvider().GetService<IConfiguration>()["TestCnnString"];
+                            options.GlobalFields = new Dictionary<string, object>
+                            {
+                                {"ServerName", "PROD-APP-01"},
+                                {"Ip", "192.168.0.1"}
+                            };
                         });
-                        // builder.AddYadl(options =>
-                        // {
-                        //     options.IncludeScopes = true;
-                        //     options.BatchPeriod = 30000;
-                        //     options.BatchSize = 100;
-                        //     options.TableDestination = "Logs";
-                        //     options.ConnectionString =
-                        //         builder.Services.BuildServiceProvider().GetService<IConfiguration>()["TestCnnString"];
-                        //     options.GlobalFields = new Dictionary<string, object>
-                        //     {
-                        //         {"ServerName", "PROD-APP-01"},
-                        //         {"Ip", "192.168.0.1"}
-                        //     };
-                        // });
                     });
                 })
                 .ConfigureWebHost(builder =>
