@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Xunit;
 using Yadl.Channels;
 using Yadl.HostedServices;
+using Yadl.SQLServer;
 
 namespace Yadl.Tests
 {
@@ -28,7 +29,9 @@ namespace Yadl.Tests
             };
 
             var yadlProcessor = new YadlProcessor(options);
-            var hostedService = new CoreLoggerHostedService(yadlProcessor, options);
+            var sqlBulk = new SqlServerBulk(options);
+            
+            var hostedService = new CoreLoggerHostedService(yadlProcessor, options, sqlBulk);
 
             await hostedService.StartAsync(CancellationToken.None);
 

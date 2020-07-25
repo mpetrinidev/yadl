@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Channels;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Yadl.Json;
 
@@ -20,6 +21,9 @@ namespace Yadl
             MaxDepth = 2,
             Converters = {new DictionaryConverter()}
         };
+
+        public SqlBulkCopyOptions SqlBulkCopyOptions { get; set; } = SqlBulkCopyOptions.KeepNulls |
+                                                                     SqlBulkCopyOptions.UseInternalTransaction;
 
         public int BatchSize { get; set; }
         public string? ConnectionString { get; set; }

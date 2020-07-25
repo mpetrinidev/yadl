@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using FastMember;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Yadl.Abstractions;
@@ -16,24 +11,26 @@ namespace Yadl.HostedServices
     {
         private readonly IYadlProcessor _processor;
         private readonly YadlLoggerOptions _options;
+        private readonly ISqlServerBulk _sqlServerBulk;
 
         public CoreLoggerHostedService(IYadlProcessor processor,
-            IOptions<YadlLoggerOptions> options) : this(processor, options.Value)
+            IOptions<YadlLoggerOptions> options, ISqlServerBulk sqlServerBulk) : this(processor, options.Value, sqlServerBulk)
         {
         }
 
         public CoreLoggerHostedService(IYadlProcessor processor,
-            YadlLoggerOptions options)
+            YadlLoggerOptions options, ISqlServerBulk sqlServerBulk)
         {
             _processor = processor;
             _options = options;
+            _sqlServerBulk = sqlServerBulk;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var message = await _processor.ChannelReader.ReadAsync();
+                var message = await _processor.ChannelReader.ReadAsync(stoppingToken);
                 if (message == null) continue;
 
                 _processor.Messages.Add(message);
@@ -42,22 +39,7 @@ namespace Yadl.HostedServices
                 var tmpMsg = _processor.Messages.ToList();
                 _processor.Messages.Clear();
 
-                using var bcp = new SqlBulkCopy(_options.ConnectionString,
-                    SqlBulkCopyOptions.KeepNulls |
-                    SqlBulkCopyOptions.UseInternalTransaction)
-                {
-                    DestinationTableName = _options.TableDestination,
-                    BatchSize = _options.BatchSize,
-                    BulkCopyTimeout = 0
-                };
-                await using var reader = ObjectReader.Create(tmpMsg, "Id",
-                    "Message",
-                    "Level",
-                    "LevelDescription",
-                    "TimeStamp",
-                    "ExtraFields");
-
-                await bcp.WriteToServerAsync(reader, stoppingToken);
+                await _sqlServerBulk.ExecuteAsync(tmpMsg, stoppingToken);
             }
         }
     }

@@ -7,6 +7,7 @@ using Yadl;
 using Yadl.Abstractions;
 using Yadl.Channels;
 using Yadl.HostedServices;
+using Yadl.SQLServer;
 
 namespace Microsoft.Extensions.Logging
 {
@@ -20,6 +21,7 @@ namespace Microsoft.Extensions.Logging
             }
             
             builder.AddConfiguration();
+            builder.Services.AddSingleton<ISqlServerBulk, SqlServerBulk>();
             builder.Services.AddSingleton<IYadlProcessor, YadlProcessor>();
             builder.Services.AddSingleton<ILoggerProvider, YadlLoggerProvider>();
             builder.Services.TryAddSingleton<IConfigureOptions<YadlLoggerOptions>, YadlLoggerOptionsSetup>();

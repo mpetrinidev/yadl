@@ -1,7 +1,7 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Yadl.Abstractions;
 
@@ -9,35 +9,38 @@ namespace Yadl.HostedServices
 {
     public class TimedHostedService : BackgroundService
     {
-        private readonly ILogger<TimedHostedService> _logger;
         private readonly IYadlProcessor _processor;
         private readonly YadlLoggerOptions _options;
+        private readonly ISqlServerBulk _sqlServerBulk;
 
-        public TimedHostedService(ILogger<TimedHostedService> logger, IYadlProcessor processor,
-            IOptions<YadlLoggerOptions> options) : this(logger, processor, options.Value)
+        public TimedHostedService(IYadlProcessor processor,
+            IOptions<YadlLoggerOptions> options, ISqlServerBulk sqlServerBulk) : this(processor, options.Value, sqlServerBulk)
         {
         }
 
-        public TimedHostedService(ILogger<TimedHostedService> logger, IYadlProcessor processor,
-            YadlLoggerOptions options)
+        public TimedHostedService(IYadlProcessor processor,
+            YadlLoggerOptions options, ISqlServerBulk sqlServerBulk)
         {
-            _logger = logger;
             _processor = processor;
             _options = options;
+            _sqlServerBulk = sqlServerBulk;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                if (_options.BatchSize == _processor.Messages.Count)
-                {
-                    //TODO Move elements to another list and clear _processor.Messages
-                    //TODO Clear _processor.Messages
-                    //TODO Insert batch
-                }
+                var message = await _processor.ChannelReader.ReadAsync();
+                if (message == null) continue;
 
-                await Task.Delay(_options.BatchPeriod);
+                _processor.Messages.Add(message);
+                if (_processor.Messages.Count != _options.BatchSize) continue;
+
+                var tmpMsg = _processor.Messages.ToList();
+                _processor.Messages.Clear();
+
+                await _sqlServerBulk.ExecuteAsync(tmpMsg, stoppingToken);
+                await Task.Delay(_options.BatchPeriod, stoppingToken);
             }
         }
     }
