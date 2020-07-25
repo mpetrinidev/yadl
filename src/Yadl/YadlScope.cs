@@ -6,14 +6,14 @@ namespace Yadl
 {
     public class YadlScope
     {
-        private YadlScope(IDictionary<string, object> additionalFields)
+        private YadlScope(Dictionary<string, object?> additionalFields)
         {
             AdditionalFields = additionalFields;
         }
 
         public YadlScope? Parent { get; private set; }
 
-        public IDictionary<string, object> AdditionalFields { get; }
+        public IDictionary<string, object?> AdditionalFields { get; }
 
         private static readonly AsyncLocal<YadlScope?> _value = new AsyncLocal<YadlScope?>();
 
