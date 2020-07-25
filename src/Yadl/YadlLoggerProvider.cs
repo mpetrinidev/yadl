@@ -6,11 +6,10 @@ using Yadl.Abstractions;
 namespace Microsoft.Extensions.Logging
 {
     [ProviderAlias("Yadl")]
-    public class YadlLoggerProvider : ILoggerProvider, ISupportExternalScope
+    public class YadlLoggerProvider : ILoggerProvider
     {
         private readonly YadlLoggerOptions _options;
         private readonly IYadlProcessor _processor;
-        private IExternalScopeProvider? _scopeProvider;
 
         public YadlLoggerProvider(IYadlProcessor processor, IOptions<YadlLoggerOptions> options) : this(processor,
             options.Value)
@@ -57,15 +56,7 @@ namespace Microsoft.Extensions.Logging
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new YadlLogger(categoryName, _options, _processor)
-            {
-                ExternalScopeProvider = _scopeProvider
-            };
-        }
-
-        void ISupportExternalScope.SetScopeProvider(IExternalScopeProvider scopeProvider)
-        {
-            _scopeProvider = scopeProvider;
+            return new YadlLogger(categoryName, _options, _processor);
         }
     }
 }

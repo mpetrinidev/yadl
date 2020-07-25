@@ -18,8 +18,6 @@ namespace Microsoft.Extensions.Logging
             {
                 throw new ArgumentNullException(nameof(builder));
             }
-
-            builder.ClearProviders();
             
             builder.AddConfiguration();
             builder.Services.AddSingleton<IYadlProcessor, YadlProcessor>();

@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Options;
 using Yadl;
 using Yadl.Abstractions;
@@ -14,8 +15,6 @@ namespace Microsoft.Extensions.Logging
         private readonly YadlLoggerOptions _options;
         private readonly IYadlProcessor _processor;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
-
-        internal IExternalScopeProvider? ExternalScopeProvider { get; set; }
 
         public YadlLogger(string name, IOptions<YadlLoggerOptions> options, IYadlProcessor processor) : this(name,
             options.Value,
@@ -58,16 +57,35 @@ namespace Microsoft.Extensions.Logging
 
         private void CompleteMessage(YadlMessage message)
         {
-            ProcessFields(message, _options.GlobalFields);
-            // ExternalScopeProvider?.ForEachScope(
-            //     (scope, mes) =>
-            //     {
-            //         if (scope is IEnumerable<KeyValuePair<string, object>> pairs)
-            //         {
-            //             ProcessFields(message, pairs);
-            //         }
-            //     },
-            //     message);
+            if (_options.GlobalFields.Count > 0)
+            {
+                ProcessFields(message, _options.GlobalFields);    
+            }
+            
+            var addFields = GetScopeAdditionalFields().ToList();
+            if (addFields.Count > 0)
+            {
+                ProcessFields(message, addFields);
+            }
+        }
+
+        private IEnumerable<KeyValuePair<string, object>> GetScopeAdditionalFields()
+        {
+            var additionalFields = Enumerable.Empty<KeyValuePair<string, object>>();
+
+            if (_options.IncludeScopes == false)
+            {
+                return additionalFields;
+            }
+
+            var scope = YadlScope.Current;
+            while (scope != null)
+            {
+                additionalFields = additionalFields.Concat(scope.AdditionalFields);
+                scope = scope.Parent;
+            }
+
+            return additionalFields;
         }
 
         private void ProcessFields(YadlMessage message, IEnumerable<KeyValuePair<string, object>> fields)
@@ -88,7 +106,7 @@ namespace Microsoft.Extensions.Logging
         {
             return state switch
             {
-                IEnumerable<KeyValuePair<string, object>> fields => ExternalScopeProvider?.Push(fields),
+                IEnumerable<KeyValuePair<string, object>> fields => PushValidFields(fields),
                 ValueTuple<string, string> field => ConvertTuple(field),
                 ValueTuple<string, short> field => ConvertTuple(field),
                 ValueTuple<string, ushort> field => ConvertTuple(field),
@@ -100,13 +118,23 @@ namespace Microsoft.Extensions.Logging
                 ValueTuple<string, double> field => ConvertTuple(field),
                 ValueTuple<string, decimal> field => ConvertTuple(field),
                 ValueTuple<string, object> field => ConvertTuple(field),
-                _ => NullScope.Instance
-            } ?? NullScope.Instance;
+                _ => new NoopDisposable()
+            } ?? new NoopDisposable();
 
-            IDisposable ConvertTuple((string, object) field) => ExternalScopeProvider?.Push(new[]
+            IDisposable PushValidFields(IEnumerable<KeyValuePair<string, object>> fields)
             {
-                new KeyValuePair<string, object>(field.Item1, field.Item2)
-            }) ?? NullScope.Instance;
+                var dic = fields.Where(p => _options.AllowedKeys.Contains(p.Key))
+                    .ToDictionary(d => d.Key, d => d.Value);
+
+                return dic.Count == 0 ? new NoopDisposable() : YadlScope.Push(dic);
+            }
+
+            IDisposable ConvertTuple((string, object) field) => _options.AllowedKeys.Contains(field.Item1)
+                ? YadlScope.Push(new[]
+                {
+                    new KeyValuePair<string, object>(field.Item1, field.Item2)
+                })
+                : new NoopDisposable();
         }
 
         private string GetLogDescription(LogLevel level)
@@ -122,6 +150,13 @@ namespace Microsoft.Extensions.Logging
                 LogLevel.None => "None",
                 _ => string.Empty
             } ?? string.Empty;
+        }
+
+        private class NoopDisposable : IDisposable
+        {
+            public void Dispose()
+            {
+            }
         }
     }
 }

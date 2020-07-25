@@ -9,7 +9,8 @@ namespace Yadl
     {
         public bool IncludeScopes { get; set; } = true;
         public Func<string, LogLevel, bool>? Filter { get; set; }
-        public Dictionary<string, object> GlobalFields { get; set; } = new Dictionary<string, object>();
+        public IDictionary<string, object> GlobalFields { get; set; } = new Dictionary<string, object>();
+        public ICollection<string> AllowedKeys { get; } = new List<string>();
 
         public int BatchSize { get; set; }
         public string? ConnectionString { get; set; }
