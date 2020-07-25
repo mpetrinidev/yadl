@@ -14,7 +14,6 @@ namespace Microsoft.Extensions.Logging
         private readonly string _name;
         private readonly YadlLoggerOptions _options;
         private readonly IYadlProcessor _processor;
-        private readonly JsonSerializerOptions _jsonSerializerOptions;
 
         public YadlLogger(string name, IOptions<YadlLoggerOptions> options, IYadlProcessor processor) : this(name,
             options.Value,
@@ -27,8 +26,6 @@ namespace Microsoft.Extensions.Logging
             _name = name;
             _options = options;
             _processor = processor;
-            _jsonSerializerOptions = new JsonSerializerOptions();
-            _jsonSerializerOptions.Converters.Add(new DictionaryConverter());
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception,
@@ -94,7 +91,8 @@ namespace Microsoft.Extensions.Logging
             var actualJson = string.IsNullOrEmpty(message.ExtraFields) ? "{}" : message.ExtraFields;
 
             var fieldsAsJson =
-                JsonSerializer.Serialize(fields.ToDictionary(k => k.Key, v => v.Value), _jsonSerializerOptions);
+                JsonSerializer.Serialize(fields.ToDictionary(k => k.Key, v => v.Value), _options.JsonSerializerOptions);
+            
             message.ExtraFields = JsonExtensions.Merge(actualJson, fieldsAsJson);
         }
 
