@@ -27,7 +27,10 @@ namespace WebApplication.Controllers
         {
             using (_logger.BeginScope(new Dictionary<string, object> {{"Test", "Test"}}))
             {
-                _logger.LogCritical("Msg_daleee");
+                using (_logger.BeginScope(new Dictionary<string, object> {{"Otro", "Scope"}}))
+                {
+                    _logger.LogCritical("Msg_daleee");
+                }
             }
 
             var rng = new Random();
