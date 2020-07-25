@@ -14,7 +14,7 @@ namespace Yadl.Tests
         public JsonTest()
         {
             _jsonSerializerOptions = new JsonSerializerOptions();
-            _jsonSerializerOptions.Converters.Add(new EnumerableKeyValuePairConverter());
+            _jsonSerializerOptions.Converters.Add(new DictionaryConverter());
         }
 
         private class A

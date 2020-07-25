@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace Yadl.Json
 {
-    public class EnumerableKeyValuePairConverter : JsonConverter<Dictionary<string, object>>
+    public class DictionaryConverter : JsonConverter<Dictionary<string, object>>
     {
         public override bool CanConvert(Type typeToConvert)
         {
@@ -29,9 +29,9 @@ namespace Yadl.Json
             {
                 writer.WritePropertyName(kvp.Key);
 
-                if (kvp.Value is Dictionary<string, object>)
+                if (kvp.Value is Dictionary<string, object> objects)
                 {
-                    Write(writer, (Dictionary<string, object>) kvp.Value, options);
+                    Write(writer, objects, options);
                 }
 
                 if (kvp.Value is string)

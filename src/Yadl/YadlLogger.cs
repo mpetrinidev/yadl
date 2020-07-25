@@ -28,7 +28,7 @@ namespace Microsoft.Extensions.Logging
             _options = options;
             _processor = processor;
             _jsonSerializerOptions = new JsonSerializerOptions();
-            _jsonSerializerOptions.Converters.Add(new EnumerableKeyValuePairConverter());
+            _jsonSerializerOptions.Converters.Add(new DictionaryConverter());
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception,
@@ -59,9 +59,9 @@ namespace Microsoft.Extensions.Logging
         {
             if (_options.GlobalFields.Count > 0)
             {
-                ProcessFields(message, _options.GlobalFields);    
+                ProcessFields(message, _options.GlobalFields);
             }
-            
+
             var addFields = GetScopeAdditionalFields().ToList();
             if (addFields.Count > 0)
             {
@@ -93,7 +93,8 @@ namespace Microsoft.Extensions.Logging
             if (fields == null) return;
             var actualJson = string.IsNullOrEmpty(message.ExtraFields) ? "{}" : message.ExtraFields;
 
-            var fieldsAsJson = JsonSerializer.Serialize((Dictionary<string, object>) fields, _jsonSerializerOptions);
+            var fieldsAsJson =
+                JsonSerializer.Serialize(fields.ToDictionary(k => k.Key, v => v.Value), _jsonSerializerOptions);
             message.ExtraFields = JsonExtensions.Merge(actualJson, fieldsAsJson);
         }
 
