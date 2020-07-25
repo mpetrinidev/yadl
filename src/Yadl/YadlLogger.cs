@@ -107,35 +107,36 @@ namespace Microsoft.Extensions.Logging
         {
             return state switch
             {
-                IEnumerable<KeyValuePair<string, object>> fields => PushValidFields(fields),
-                ValueTuple<string, string> field => ConvertTuple(field),
-                ValueTuple<string, short> field => ConvertTuple(field),
-                ValueTuple<string, ushort> field => ConvertTuple(field),
-                ValueTuple<string, int> field => ConvertTuple(field),
-                ValueTuple<string, uint> field => ConvertTuple(field),
-                ValueTuple<string, long> field => ConvertTuple(field),
-                ValueTuple<string, ulong> field => ConvertTuple(field),
-                ValueTuple<string, float> field => ConvertTuple(field),
-                ValueTuple<string, double> field => ConvertTuple(field),
-                ValueTuple<string, decimal> field => ConvertTuple(field),
-                ValueTuple<string, object> field => ConvertTuple(field),
+                IDictionary<string, object?> fields => PushValidFields(fields),
+                ValueTuple<string, string?> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, short?> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, ushort?> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, int?> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, uint?> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, long?> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, ulong?> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, float?> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, double?> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, decimal?> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, object?> field => ConvertTupleAndPushValidFields(field),
                 _ => new NoopDisposable()
             } ?? new NoopDisposable();
 
-            IDisposable PushValidFields(IEnumerable<KeyValuePair<string, object>> fields)
+            IDisposable PushValidFields(IDictionary<string, object?> fields)
             {
-                var dic = fields.Where(p => _options.AllowedKeys.Contains(p.Key))
-                    .ToDictionary(d => d.Key, d => d.Value);
-
+                var dic = GetAllowedDictionary(fields);
                 return dic.Count == 0 ? new NoopDisposable() : YadlScope.Push(dic);
             }
 
-            IDisposable ConvertTuple((string, object) field) => _options.AllowedKeys.Contains(field.Item1)
-                ? YadlScope.Push(new[]
-                {
-                    new KeyValuePair<string, object>(field.Item1, field.Item2)
-                })
-                : new NoopDisposable();
+            IDisposable ConvertTupleAndPushValidFields((string, object?) fields) =>
+                _options.AllowedKeys.Contains(fields.Item1)
+                    ? YadlScope.Push(new Dictionary<string, object?> {{fields.Item1, fields.Item2}})
+                    : new NoopDisposable();
+
+            Dictionary<string, object?> GetAllowedDictionary(IDictionary<string, object?> fields) =>
+                fields
+                    .Where(p => _options.AllowedKeys.Contains(p.Key))
+                    .ToDictionary(d => d.Key, d => d.Value);
         }
 
         private string GetLogDescription(LogLevel level)

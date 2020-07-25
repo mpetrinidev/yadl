@@ -21,8 +21,6 @@ namespace Yadl.Json
         public override void Write(Utf8JsonWriter writer, Dictionary<string, object> value,
             JsonSerializerOptions options)
         {
-            //TODO: Establish a depth to 2
-            
             writer.WriteStartObject();
 
             foreach (var kvp in value)
@@ -34,57 +32,57 @@ namespace Yadl.Json
                     Write(writer, objects, options);
                 }
 
-                if (kvp.Value is string)
+                if (kvp.Value is string sValue)
                 {
-                    writer.WriteStringValue((string) kvp.Value);
+                    writer.WriteStringValue(sValue);
                     continue;
                 }
 
-                if (kvp.Value is short)
+                if (kvp.Value is short shValue)
                 {
-                    writer.WriteNumberValue((short) kvp.Value);
+                    writer.WriteNumberValue( shValue);
                     continue;
                 }
 
-                if (kvp.Value is ushort)
+                if (kvp.Value is ushort ushValue)
                 {
-                    writer.WriteNumberValue((ushort) kvp.Value);
+                    writer.WriteNumberValue(ushValue);
                     continue;
                 }
 
-                if (kvp.Value is int)
+                if (kvp.Value is int iValue)
                 {
-                    writer.WriteNumberValue((int) kvp.Value);
+                    writer.WriteNumberValue(iValue);
                     continue;
                 }
 
-                if (kvp.Value is long)
+                if (kvp.Value is long lValue)
                 {
-                    writer.WriteNumberValue((long) kvp.Value);
+                    writer.WriteNumberValue(lValue);
                     continue;
                 }
 
-                if (kvp.Value is ulong)
+                if (kvp.Value is ulong ulValue)
                 {
-                    writer.WriteNumberValue((ulong) kvp.Value);
+                    writer.WriteNumberValue(ulValue);
                     continue;
                 }
 
-                if (kvp.Value is float)
+                if (kvp.Value is float fValue)
                 {
-                    writer.WriteNumberValue((float) kvp.Value);
+                    writer.WriteNumberValue(fValue);
                     continue;
                 }
 
-                if (kvp.Value is double)
+                if (kvp.Value is double dValue)
                 {
-                    writer.WriteNumberValue((double) kvp.Value);
+                    writer.WriteNumberValue(dValue);
                     continue;
                 }
 
-                if (kvp.Value is decimal)
+                if (kvp.Value is decimal deValue)
                 {
-                    writer.WriteNumberValue((decimal) kvp.Value);    
+                    writer.WriteNumberValue(deValue);
                 }
             }
 

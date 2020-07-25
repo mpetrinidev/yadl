@@ -6,14 +6,14 @@ namespace Yadl
 {
     public class YadlScope
     {
-        private YadlScope(IEnumerable<KeyValuePair<string, object>> additionalFields)
+        private YadlScope(IDictionary<string, object> additionalFields)
         {
             AdditionalFields = additionalFields;
         }
 
         public YadlScope? Parent { get; private set; }
 
-        public IEnumerable<KeyValuePair<string, object>> AdditionalFields { get; }
+        public IDictionary<string, object> AdditionalFields { get; }
 
         private static readonly AsyncLocal<YadlScope?> _value = new AsyncLocal<YadlScope?>();
 
@@ -23,7 +23,7 @@ namespace Yadl
             set => _value.Value = value;
         }
 
-        public static IDisposable Push(IEnumerable<KeyValuePair<string, object>> additionalFields)
+        public static IDisposable Push(Dictionary<string, object?> additionalFields)
         {
             var parent = Current;
             Current = new YadlScope(additionalFields) {Parent = parent};
