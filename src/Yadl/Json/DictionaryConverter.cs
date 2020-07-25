@@ -5,20 +5,20 @@ using System.Text.Json.Serialization;
 
 namespace Yadl.Json
 {
-    public class DictionaryConverter : JsonConverter<Dictionary<string, object>>
+    public class DictionaryConverter : JsonConverter<IDictionary<string, object>>
     {
         public override bool CanConvert(Type typeToConvert)
         {
             return typeToConvert == typeof(Dictionary<string, object>);
         }
 
-        public override Dictionary<string, object> Read(ref Utf8JsonReader reader, Type typeToConvert,
+        public override IDictionary<string, object> Read(ref Utf8JsonReader reader, Type typeToConvert,
             JsonSerializerOptions options)
         {
             throw new NotImplementedException();
         }
 
-        public override void Write(Utf8JsonWriter writer, Dictionary<string, object> value,
+        public override void Write(Utf8JsonWriter writer, IDictionary<string, object> value,
             JsonSerializerOptions options)
         {
             writer.WriteStartObject();
@@ -27,7 +27,7 @@ namespace Yadl.Json
             {
                 writer.WritePropertyName(kvp.Key);
 
-                if (kvp.Value is Dictionary<string, object> objects)
+                if (kvp.Value is IDictionary<string, object> objects)
                 {
                     Write(writer, objects, options);
                 }
@@ -40,7 +40,7 @@ namespace Yadl.Json
 
                 if (kvp.Value is short shValue)
                 {
-                    writer.WriteNumberValue( shValue);
+                    writer.WriteNumberValue(shValue);
                     continue;
                 }
 

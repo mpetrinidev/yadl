@@ -59,16 +59,16 @@ namespace Microsoft.Extensions.Logging
                 ProcessFields(message, _options.GlobalFields);
             }
 
-            var addFields = GetScopeAdditionalFields().ToList();
+            var addFields = GetScopeAdditionalFields();
             if (addFields.Count > 0)
             {
                 ProcessFields(message, addFields);
             }
         }
 
-        private IEnumerable<KeyValuePair<string, object>> GetScopeAdditionalFields()
+        private IDictionary<string, object> GetScopeAdditionalFields()
         {
-            var additionalFields = Enumerable.Empty<KeyValuePair<string, object>>();
+            var additionalFields = new Dictionary<string, object>();
 
             if (_options.IncludeScopes == false)
             {
@@ -78,21 +78,22 @@ namespace Microsoft.Extensions.Logging
             var scope = YadlScope.Current;
             while (scope != null)
             {
-                additionalFields = additionalFields.Concat(scope.AdditionalFields);
+                additionalFields = additionalFields.Concat(scope.AdditionalFields)
+                    .ToDictionary(d => d.Key, d => d.Value);
+
                 scope = scope.Parent;
             }
 
             return additionalFields;
         }
 
-        private void ProcessFields(YadlMessage message, IEnumerable<KeyValuePair<string, object>> fields)
+        private void ProcessFields(YadlMessage message, IDictionary<string, object> fields)
         {
             if (fields == null) return;
             var actualJson = string.IsNullOrEmpty(message.ExtraFields) ? "{}" : message.ExtraFields;
 
-            var fieldsAsJson =
-                JsonSerializer.Serialize(fields.ToDictionary(k => k.Key, v => v.Value), _options.JsonSerializerOptions);
-            
+            var fieldsAsJson = JsonSerializer.Serialize(fields, _options.JsonSerializerOptions);
+
             message.ExtraFields = JsonExtensions.Merge(actualJson, fieldsAsJson);
         }
 
