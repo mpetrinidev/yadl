@@ -127,15 +127,25 @@ namespace Microsoft.Extensions.Logging
                 return dic.Count == 0 ? new NoopDisposable() : YadlScope.Push(dic);
             }
 
-            IDisposable ConvertTupleAndPushValidFields((string, object?) fields) =>
-                _options.AllowedKeys.Contains(fields.Item1)
+            IDisposable ConvertTupleAndPushValidFields((string, object?) fields)
+            {
+                if (!_options.UseAllowedKeys)
+                    return YadlScope.Push(new Dictionary<string, object?> {{fields.Item1, fields.Item2}});
+
+                return _options.AllowedKeys.Contains(fields.Item1)
                     ? YadlScope.Push(new Dictionary<string, object?> {{fields.Item1, fields.Item2}})
                     : new NoopDisposable();
+            }
 
-            Dictionary<string, object?> GetAllowedDictionary(IDictionary<string, object?> fields) =>
-                fields
+            Dictionary<string, object?> GetAllowedDictionary(IDictionary<string, object?> fields)
+            {
+                if (!_options.UseAllowedKeys)
+                    return (Dictionary<string, object?>) fields;
+
+                return fields
                     .Where(p => _options.AllowedKeys.Contains(p.Key))
                     .ToDictionary(d => d.Key, d => d.Value);
+            }
         }
 
         private string GetLogDescription(LogLevel level)
