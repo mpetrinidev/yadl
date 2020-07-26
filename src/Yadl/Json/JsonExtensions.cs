@@ -14,7 +14,7 @@ namespace Yadl.Json
 
             using (var jDoc1 = JsonDocument.Parse(originalJson))
             using (var jDoc2 = JsonDocument.Parse(newContent))
-            using (var jsonWriter = new Utf8JsonWriter(outputBuffer, new JsonWriterOptions {Indented = true}))
+            using (var jsonWriter = new Utf8JsonWriter(outputBuffer))
             {
                 JsonElement root1 = jDoc1.RootElement;
                 JsonElement root2 = jDoc2.RootElement;
@@ -62,7 +62,7 @@ namespace Yadl.Json
 
                     if (newValueKind == JsonValueKind.Object && originalValueKind == JsonValueKind.Object)
                     {
-                        MergeObjects(jsonWriter, originalValue, newValue); // Recursive call
+                        MergeObjects(jsonWriter, originalValue, newValue);
                     }
                     else if (newValueKind == JsonValueKind.Array && originalValueKind == JsonValueKind.Array)
                     {

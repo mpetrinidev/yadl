@@ -25,12 +25,9 @@ namespace WebApplication.Controllers
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
-            using (_logger.BeginScope(new Dictionary<string, object> {{"Test", "Test"}}))
+            using (_logger.BeginScope(new Dictionary<string, object?> {{"Test", null}}))
             {
-                using (_logger.BeginScope(new Dictionary<string, object> {{"Otro", "Scope"}}))
-                {
-                    _logger.LogCritical("Msg_daleee");
-                }
+                _logger.LogCritical("Msg_daleee");
             }
 
             var rng = new Random();

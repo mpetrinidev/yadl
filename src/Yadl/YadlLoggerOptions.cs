@@ -19,7 +19,8 @@ namespace Yadl
         public JsonSerializerOptions JsonSerializerOptions { get; set; } = new JsonSerializerOptions
         {
             IgnoreNullValues = false,
-            MaxDepth = 2,
+            WriteIndented = false,
+            AllowTrailingCommas = false,
             Converters = {new DictionaryConverter()}
         };
 
