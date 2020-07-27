@@ -15,16 +15,12 @@ namespace Yadl.Tests
         [Fact]
         public async Task CoreLoggerHostedService_ShouldBatchInsert()
         {
-            var configurationBuilder = new ConfigurationBuilder();
-            configurationBuilder.AddUserSecrets<HostedServiceTest>();
-            var config = configurationBuilder.Build();
-
             var options = new YadlLoggerOptions
             {
                 BatchPeriod = 30_000,
                 BatchSize = 1_000,
                 ChannelFullMode = 0,
-                ConnectionString = config["TestCnnString"],
+                ConnectionString = Variables.CnnString,
                 TableDestination = "Logs"
             };
 
@@ -46,7 +42,7 @@ namespace Yadl.Tests
                 });
             }
             
-            await Task.Delay(7500);
+            await Task.Delay(7_500);
             Assert.False(yadlProcessor.Messages.Any());
         }
     }

@@ -24,7 +24,6 @@ namespace Yadl.Tests
         public BasicTest()
         {
             var hostBuilder = new HostBuilder()
-                .ConfigureAppConfiguration(builder => { builder.AddUserSecrets<BasicTest>(); })
                 .ConfigureServices(c =>
                 {
                     c.AddRouting();
@@ -36,9 +35,8 @@ namespace Yadl.Tests
                             options.BatchPeriod = 30000;
                             options.BatchSize = 100;
                             options.TableDestination = "Logs";
-                            options.ConnectionString =
-                                builder.Services.BuildServiceProvider().GetService<IConfiguration>()["TestCnnString"];
-                            options.GlobalFields = new Dictionary<string, object>
+                            options.ConnectionString = Variables.CnnString;
+                                options.GlobalFields = new Dictionary<string, object>
                             {
                                 {"ServerName", "PROD-APP-01"},
                                 {"Ip", "192.168.0.1"}
