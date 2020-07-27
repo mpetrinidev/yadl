@@ -6,8 +6,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yadl.Tests", "test\Yadl.Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yadl.PerformanceTests", "test\Yadl.PerformanceTests\Yadl.PerformanceTests.csproj", "{F2D55472-99CB-45BA-B1BF-CBA925BBACD7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication", "WebApplication\WebApplication.csproj", "{A9FCC558-7E13-45C9-AC10-0E28CF37B763}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,9 +24,5 @@ Global
 		{F2D55472-99CB-45BA-B1BF-CBA925BBACD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F2D55472-99CB-45BA-B1BF-CBA925BBACD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F2D55472-99CB-45BA-B1BF-CBA925BBACD7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A9FCC558-7E13-45C9-AC10-0E28CF37B763}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A9FCC558-7E13-45C9-AC10-0E28CF37B763}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A9FCC558-7E13-45C9-AC10-0E28CF37B763}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A9FCC558-7E13-45C9-AC10-0E28CF37B763}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
