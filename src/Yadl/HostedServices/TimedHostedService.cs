@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,8 @@ namespace Yadl.HostedServices
         private readonly YadlLoggerOptions _options;
         private readonly ISqlServerBulk _sqlServerBulk;
 
+        private readonly object _memberLock;
+
         public TimedHostedService(IYadlProcessor processor,
             IOptions<YadlLoggerOptions> options, ISqlServerBulk sqlServerBulk) : this(processor, options.Value,
             sqlServerBulk)
@@ -25,24 +28,28 @@ namespace Yadl.HostedServices
             _processor = processor;
             _options = options;
             _sqlServerBulk = sqlServerBulk;
+
+            _memberLock = new object();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await Task.Yield();
-
             while (!stoppingToken.IsCancellationRequested)
             {
                 await Task.Delay(_options.BatchPeriod, stoppingToken);
 
-                if (_processor.ChannelReader.TryRead(out var message))
-                    _processor.Messages.Add(message);
+                List<YadlMessage> messages;
+                lock (_memberLock)
+                {
+                    if (_processor.ChannelReader.TryRead(out var message))
+                        _processor.Messages.Add(message);
 
-                var tmpMsg = _processor.Messages.ToList();
-                _processor.Messages.Clear();
+                    messages = _processor.Messages.ToList();
+                    _processor.Messages.Clear();
+                }
 
-                if (tmpMsg.Count > 0)
-                    await _sqlServerBulk.ExecuteAsync(tmpMsg, stoppingToken);
+                if (messages.Count > 0)
+                    await _sqlServerBulk.ExecuteAsync(messages, stoppingToken);
             }
         }
     }
