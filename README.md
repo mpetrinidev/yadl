@@ -13,3 +13,7 @@ These files execute the docker container to download the SQL server image and ru
 
 ## Limitations
 It writes log records into a SQL Server Database using batch sizes or when the timer reaches the end. You can use this project to getting started to write log records wherever you want.
+
+## 
+
+👍 Feel free to file an issue to ask a question, propose a new feature or if anything is not working as expected
