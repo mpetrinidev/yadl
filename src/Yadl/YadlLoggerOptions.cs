@@ -11,8 +11,9 @@ namespace Yadl
     public class YadlLoggerOptions
     {
         public bool IncludeScopes { get; set; } = true;
-        public Func<string, LogLevel, bool>? Filter { get; set; }
-        public IDictionary<string, object> GlobalFields { get; set; } = new Dictionary<string, object>();
+        public Func<string, LogLevel, bool>? Filter => null;
+
+        public IDictionary<string, object?> GlobalFields { get; set; } = new Dictionary<string, object?>();
         public bool UseAllowedKeys { get; set; } = false;
         public ICollection<string> AllowedKeys { get; } = new List<string>();
 

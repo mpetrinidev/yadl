@@ -55,25 +55,19 @@ namespace Microsoft.Extensions.Logging
         private void CompleteMessage(YadlMessage message)
         {
             if (_options.GlobalFields.Count > 0)
-            {
                 ProcessFields(message, _options.GlobalFields);
-            }
 
             var addFields = GetScopeAdditionalFields();
             if (addFields.Count > 0)
-            {
                 ProcessFields(message, addFields);
-            }
         }
 
-        private IDictionary<string, object> GetScopeAdditionalFields()
+        private IDictionary<string, object?> GetScopeAdditionalFields()
         {
-            var additionalFields = new Dictionary<string, object>();
+            var additionalFields = new Dictionary<string, object?>();
 
             if (_options.IncludeScopes == false)
-            {
                 return additionalFields;
-            }
 
             var scope = YadlScope.Current;
             while (scope != null)
@@ -87,11 +81,9 @@ namespace Microsoft.Extensions.Logging
             return additionalFields;
         }
 
-        private void ProcessFields(YadlMessage message, IDictionary<string, object> fields)
+        private void ProcessFields(YadlMessage message, IDictionary<string, object?> fields)
         {
-            if (fields == null) return;
             var actualJson = string.IsNullOrEmpty(message.ExtraFields) ? "{}" : message.ExtraFields;
-
             var fieldsAsJson = JsonSerializer.Serialize(fields, _options.JsonSerializerOptions);
 
             message.ExtraFields = JsonExtensions.Merge(actualJson, fieldsAsJson);
@@ -119,7 +111,7 @@ namespace Microsoft.Extensions.Logging
                 ValueTuple<string, decimal?> field => ConvertTupleAndPushValidFields(field),
                 ValueTuple<string, object?> field => ConvertTupleAndPushValidFields(field),
                 _ => new NoopDisposable()
-            } ?? new NoopDisposable();
+            };
 
             IDisposable PushValidFields(IDictionary<string, object?> fields)
             {
@@ -160,7 +152,7 @@ namespace Microsoft.Extensions.Logging
                 LogLevel.Critical => "Critical",
                 LogLevel.None => "None",
                 _ => string.Empty
-            } ?? string.Empty;
+            };
         }
 
         private class NoopDisposable : IDisposable

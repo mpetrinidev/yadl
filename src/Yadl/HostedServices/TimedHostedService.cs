@@ -47,7 +47,7 @@ namespace Yadl.HostedServices
                     messages = _processor.Messages.ToList();
                     _processor.Messages.Clear();
                 }
-
+    
                 if (messages.Count > 0)
                     await _sqlServerBulk.ExecuteAsync(messages, stoppingToken);
             }
