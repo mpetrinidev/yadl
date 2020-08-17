@@ -48,7 +48,7 @@ namespace Microsoft.Extensions.Logging
 
             CompleteMessage(message);
 
-            //Assume always gonna be true because unbounded channel
+            //Assume always gonna be true because it's unbounded channel
             _ = _processor.ChannelWriter.TryWrite(message);
         }
 
@@ -72,8 +72,14 @@ namespace Microsoft.Extensions.Logging
             var scope = YadlScope.Current;
             while (scope != null)
             {
-                additionalFields = additionalFields.Concat(scope.AdditionalFields)
-                    .ToDictionary(d => d.Key, d => d.Value);
+                foreach (var field in scope.AdditionalFields)
+                {
+                    if (additionalFields.ContainsKey(field.Key)) continue;
+                    additionalFields.Add(field.Key, field.Value);
+                }
+
+                //additionalFields = additionalFields.Concat(scope.AdditionalFields)
+                //    .ToDictionary(d => d.Key, d => d.Value);
 
                 scope = scope.Parent;
             }
@@ -99,16 +105,16 @@ namespace Microsoft.Extensions.Logging
             return state switch
             {
                 IDictionary<string, object?> fields => PushValidFields(fields),
-                ValueTuple<string, string?> field => ConvertTupleAndPushValidFields(field),
-                ValueTuple<string, short?> field => ConvertTupleAndPushValidFields(field),
-                ValueTuple<string, ushort?> field => ConvertTupleAndPushValidFields(field),
-                ValueTuple<string, int?> field => ConvertTupleAndPushValidFields(field),
-                ValueTuple<string, uint?> field => ConvertTupleAndPushValidFields(field),
-                ValueTuple<string, long?> field => ConvertTupleAndPushValidFields(field),
-                ValueTuple<string, ulong?> field => ConvertTupleAndPushValidFields(field),
-                ValueTuple<string, float?> field => ConvertTupleAndPushValidFields(field),
-                ValueTuple<string, double?> field => ConvertTupleAndPushValidFields(field),
-                ValueTuple<string, decimal?> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, string> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, short> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, ushort> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, int> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, uint> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, long> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, ulong> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, float> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, double> field => ConvertTupleAndPushValidFields(field),
+                ValueTuple<string, decimal> field => ConvertTupleAndPushValidFields(field),
                 ValueTuple<string, object?> field => ConvertTupleAndPushValidFields(field),
                 _ => new NoopDisposable()
             };
